@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: clinica-nova-visao
+    runtime: node
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: CLINICA_API_KEY
+        sync: false
+      - key: OTICA_API_URL
+        value: https://controleoticasvitales.online

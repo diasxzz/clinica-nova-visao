@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+html {
+  -webkit-tap-highlight-color: transparent;
+  font-size: clamp(15px, 1.05vw + 11px, 20px);
+}
+
+body {
+  margin: 0;
+  min-width: 0;
+  background: #f1f5f9;
+}
+
+.mobile-shell input,
+.mobile-shell select,
+.mobile-shell textarea,
+.mobile-shell button {
+  font-size: 16px;
+  touch-action: manipulation;
+}
+
+.desktop-shell input,
+.desktop-shell select,
+.desktop-shell textarea,
+.desktop-shell button {
+  font-size: 1rem;
+}
+
+.clinic-logo {
+  display: block;
+  object-fit: contain;
+  object-position: center;
+}
+
+@media print {
+  html {
+    font-size: 16px;
+  }
+
+  .no-print {
+    display: none;
+  }
+}

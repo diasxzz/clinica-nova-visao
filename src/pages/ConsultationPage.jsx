@@ -93,7 +93,6 @@ function ConsultationPage() {
   const [notes, setNotes] = useState('')
   const [phone, setPhone] = useState('')
   const [doctorName, setDoctorName] = useState('')
-  const [dp, setDp] = useState('')
   const [lensTypes, setLensTypes] = useState([])
   const [treatments, setTreatments] = useState([])
   const [errorMessage, setErrorMessage] = useState('')
@@ -157,7 +156,7 @@ function ConsultationPage() {
         leftEye,
         notes: notes.trim(),
         doctorName: doctorName.trim(),
-        dp: dp.trim(),
+        dp: '',
         lensTypes,
         treatments,
       })
@@ -301,20 +300,6 @@ function ConsultationPage() {
               value={doctorName}
               onChange={(event) => setDoctorName(event.target.value)}
               placeholder="Dr. Silva"
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label htmlFor="dp" className="mb-1 block text-sm font-medium text-slate-700">
-              DP
-            </label>
-            <input
-              id="dp"
-              type="text"
-              inputMode="decimal"
-              value={dp}
-              onChange={(event) => setDp(event.target.value)}
-              placeholder="63.5"
               className={inputClass}
             />
           </div>

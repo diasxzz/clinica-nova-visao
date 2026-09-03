@@ -56,7 +56,6 @@ function PrescriptionCard({ prescription }) {
         </div>
       </div>
 
-      {prescription.dp && <p className="text-sm text-slate-600">DP {prescription.dp}</p>}
       {prescription.lensTypes?.length > 0 && (
         <p className="mt-1 text-sm text-slate-600">Lente: {prescription.lensTypes.join(', ')}</p>
       )}

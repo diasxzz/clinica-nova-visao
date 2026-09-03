@@ -46,3 +46,36 @@ export function formatAxis(value) {
   }
   return value
 }
+
+export function ageFromBirth(birthDate, atDate) {
+  if (!birthDate) {
+    return '—'
+  }
+
+  const birth = new Date(`${String(birthDate).slice(0, 10)}T12:00:00`)
+  const at = atDate ? new Date(atDate) : new Date()
+
+  if (Number.isNaN(birth.getTime()) || Number.isNaN(at.getTime())) {
+    return '—'
+  }
+
+  let age = at.getFullYear() - birth.getFullYear()
+  const monthDiff = at.getMonth() - birth.getMonth()
+
+  if (monthDiff < 0 || (monthDiff === 0 && at.getDate() < birth.getDate())) {
+    age -= 1
+  }
+
+  return age >= 0 ? String(age) : '—'
+}
+
+export function addDegrees(spherical, addition) {
+  const sphere = Number(spherical)
+  const add = Number(addition)
+
+  if (spherical === '' || addition === '' || Number.isNaN(sphere) || Number.isNaN(add)) {
+    return '—'
+  }
+
+  return formatDegree(sphere + add)
+}

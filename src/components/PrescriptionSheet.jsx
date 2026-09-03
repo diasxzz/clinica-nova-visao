@@ -93,12 +93,19 @@ function PrescriptionSheet({ patient, prescription }) {
               <td className={cell}>{left.addition ? formatAxis(left.axis) : '—'}</td>
             </tr>
             <tr>
-              <td colSpan={2} className={`${cell} text-left text-xs font-semibold uppercase`}>
-                Adição
+              <td rowSpan={2} className={sideCell}>
+                <span className="inline-block rotate-180 [writing-mode:vertical-rl]">Adição</span>
               </td>
+              <td className={`${cell} font-semibold`}>O.D</td>
               <td className={cell}>{formatDegree(right.addition)}</td>
+              <td className={cell}></td>
+              <td className={cell}></td>
+            </tr>
+            <tr>
+              <td className={`${cell} font-semibold`}>O.E</td>
               <td className={cell}>{formatDegree(left.addition)}</td>
-              <td className={cell}>—</td>
+              <td className={cell}></td>
+              <td className={cell}></td>
             </tr>
           </tbody>
         </table>

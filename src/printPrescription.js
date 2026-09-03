@@ -130,10 +130,17 @@ export function printPrescription({ patient, prescription }) {
                   <td>${escapeHtml(left.addition ? formatAxis(left.axis) : '—')}</td>
                 </tr>
                 <tr>
-                  <td colspan="2" style="text-align:left;font-weight:700;font-size:11px">ADIÇÃO</td>
+                  <td class="side" rowspan="2">ADIÇÃO</td>
+                  <td class="od">O.D</td>
                   <td>${escapeHtml(formatDegree(right.addition))}</td>
+                  <td></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td class="od">O.E</td>
                   <td>${escapeHtml(formatDegree(left.addition))}</td>
-                  <td>—</td>
+                  <td></td>
+                  <td></td>
                 </tr>
               </tbody>
             </table>

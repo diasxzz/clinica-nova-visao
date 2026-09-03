@@ -18,9 +18,9 @@ const inputClass =
 function EyeFields({ title, eyeKey, values, onChange }) {
   const fields = [
     { name: 'spherical', label: 'Esférico', placeholder: '-1.50' },
+    { name: 'addition', label: 'Adição', placeholder: '+2.00' },
     { name: 'cylindrical', label: 'Cilíndrico', placeholder: '-0.75' },
     { name: 'axis', label: 'Eixo', placeholder: '90' },
-    { name: 'addition', label: 'Adição', placeholder: '+2.00' },
     { name: 'dnp', label: 'DNP', placeholder: '32' },
   ]
 

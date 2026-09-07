@@ -6,11 +6,12 @@ import PatientsPage from './pages/PatientsPage.jsx'
 import ConsultationPage from './pages/ConsultationPage.jsx'
 import ReceptionPage from './pages/ReceptionPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
+import ForcePasswordChangePage from './pages/ForcePasswordChangePage.jsx'
 import TeamPage from './pages/TeamPage.jsx'
 import { canAccessPage, defaultPageForRole, usesDesktopShell } from './roles.js'
 
 function AppShell() {
-  const { session, isLoading, isAdmin, role } = useAuth()
+  const { session, isLoading, isAdmin, role, mustChangePassword } = useAuth()
   const [currentPage, setCurrentPage] = useState('consultation')
 
   useEffect(() => {
@@ -35,6 +36,10 @@ function AppShell() {
 
   if (!session) {
     return <LoginPage />
+  }
+
+  if (mustChangePassword) {
+    return <ForcePasswordChangePage />
   }
 
   return (

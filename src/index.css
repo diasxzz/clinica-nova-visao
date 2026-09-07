@@ -43,6 +43,23 @@ html.dark body {
   object-position: center;
 }
 
+.auth-screen {
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+.auth-screen input,
+.auth-screen button {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.auth-panel {
+  box-shadow: 8px 8px 0 rgb(12 35 64 / 0.08);
+}
+
+html.dark .auth-panel {
+  box-shadow: 8px 8px 0 rgb(13 148 136 / 0.08);
+}
+
 @media print {
   html {
     font-size: 16px;

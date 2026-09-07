@@ -8,6 +8,7 @@ function mapPatient(row) {
     cpf: row.cpf,
     phone: row.phone ?? '',
     storeId: row.store_id ?? 1,
+    notes: row.notes ?? '',
   }
 }
 
@@ -95,6 +96,7 @@ export async function savePatient(patient) {
       cpf: patient.cpf,
       phone: patient.phone ?? '',
       store_id: Number(patient.storeId) || 1,
+      notes: patient.notes ?? '',
     })
     .select()
     .single()
@@ -142,6 +144,22 @@ export async function markPrescriptionSent(prescriptionId) {
   }
 
   return mapPrescription(data)
+}
+
+export async function deletePatient(patientId) {
+  const { error } = await supabase.from('patients').delete().eq('id', patientId)
+
+  if (error) {
+    throw error
+  }
+}
+
+export async function deletePrescription(prescriptionId) {
+  const { error } = await supabase.from('prescriptions').delete().eq('id', prescriptionId)
+
+  if (error) {
+    throw error
+  }
 }
 
 export async function getPatientsWithLatestPrescription() {

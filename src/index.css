@@ -1,14 +1,25 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 html {
   -webkit-tap-highlight-color: transparent;
   font-size: clamp(15px, 1.05vw + 11px, 20px);
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 body {
   margin: 0;
   min-width: 0;
   background: #f1f5f9;
+}
+
+html.dark body {
+  background: #020617;
 }
 
 .mobile-shell input,
@@ -37,7 +48,18 @@ body {
     font-size: 16px;
   }
 
+  html.dark body {
+    background: #fff;
+  }
+
   .no-print {
     display: none;
+  }
+
+  .prescription-sheet {
+    margin: 0;
+    max-width: none;
+    min-height: auto;
+    box-shadow: none;
   }
 }

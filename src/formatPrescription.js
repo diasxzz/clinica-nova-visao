@@ -1,23 +1,44 @@
-export function formatDate(value) {
+function parseDate(value) {
   if (!value) {
-    return '—'
+    return null
   }
 
   const raw = String(value)
 
   if (raw.includes('T')) {
     const date = new Date(value)
-    if (!Number.isNaN(date.getTime())) {
-      return date.toLocaleDateString('pt-BR')
-    }
+    return Number.isNaN(date.getTime()) ? null : date
   }
 
   const [year, month, day] = raw.split('-')
   if (year && month && day && year.length === 4) {
-    return `${day}/${month}/${year}`
+    const date = new Date(`${year}-${month}-${day}T12:00:00`)
+    return Number.isNaN(date.getTime()) ? null : date
   }
 
-  return raw
+  return null
+}
+
+export function formatDate(value) {
+  const date = parseDate(value)
+  if (!date) {
+    return '—'
+  }
+
+  return date.toLocaleDateString('pt-BR')
+}
+
+export function formatDateSlash(value) {
+  const date = parseDate(value)
+  if (!date) {
+    return '___ / ___ / ______'
+  }
+
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = String(date.getFullYear())
+
+  return `${day} / ${month} / ${year}`
 }
 
 export function formatDegree(value) {

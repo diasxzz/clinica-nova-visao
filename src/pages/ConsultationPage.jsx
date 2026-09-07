@@ -3,6 +3,17 @@ import { getPatients, savePrescription } from '../storage.js'
 import { getStoreName } from '../stores.js'
 import { useAuth } from '../AuthContext.jsx'
 import { LENS_TYPES, TREATMENTS, toggleOption } from '../lensOptions.js'
+import {
+  alertError,
+  alertSuccess,
+  cardSectionMobile,
+  chipOff,
+  chipOn,
+  inputClass,
+  labelClass,
+  pageSubtitle,
+  pageTitle,
+} from '../uiClasses.js'
 
 const emptyEye = {
   spherical: '',
@@ -11,9 +22,6 @@ const emptyEye = {
   addition: '',
   dnp: '',
 }
-
-const inputClass =
-  'w-full min-h-12 rounded-xl border border-slate-200 px-3 py-3 text-base text-slate-800 outline-none placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-100'
 
 function EyeFields({ title, eyeKey, values, onChange }) {
   const fields = [
@@ -25,16 +33,13 @@ function EyeFields({ title, eyeKey, values, onChange }) {
   ]
 
   return (
-    <div className="rounded-2xl border border-slate-200 p-3 sm:p-4">
-      <h3 className="mb-3 text-base font-semibold text-slate-800">{title}</h3>
+    <div className="rounded-2xl border border-slate-200 p-3 dark:border-slate-700 dark:bg-slate-950/40 sm:p-4">
+      <h3 className="mb-3 text-base font-semibold text-slate-800 dark:text-slate-100">{title}</h3>
 
       <div className="grid grid-cols-2 gap-3">
         {fields.map((field) => (
           <div key={field.name} className={field.name === 'dnp' ? 'col-span-2 sm:col-span-1' : ''}>
-            <label
-              htmlFor={`${eyeKey}-${field.name}`}
-              className="mb-1 block text-sm font-medium text-slate-700"
-            >
+            <label htmlFor={`${eyeKey}-${field.name}`} className={labelClass}>
               {field.label}
             </label>
             <input
@@ -58,7 +63,7 @@ function EyeFields({ title, eyeKey, values, onChange }) {
 function OptionChips({ title, options, selected, onToggle }) {
   return (
     <div className="mb-4">
-      <p className="mb-2 text-sm font-medium text-slate-700">{title}</p>
+      <p className={labelClass.replace('mb-1', 'mb-2')}>{title}</p>
       <div className="flex flex-wrap gap-2">
         {options.map((option) => {
           const isOn = selected.includes(option)
@@ -68,11 +73,7 @@ function OptionChips({ title, options, selected, onToggle }) {
               key={option}
               type="button"
               onClick={() => onToggle(option)}
-              className={
-                isOn
-                  ? 'min-h-11 rounded-full bg-teal-600 px-4 py-2 text-sm font-medium text-white'
-                  : 'min-h-11 rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700'
-              }
+              className={isOn ? chipOn : chipOff}
             >
               {option}
             </button>
@@ -174,44 +175,43 @@ function ConsultationPage() {
   }
 
   return (
-    <section className="mx-auto max-w-md rounded-2xl bg-white p-3 shadow-sm">
-      <h2 className="mb-1 text-xl font-semibold text-slate-800">
-        Consulta
-      </h2>
-      <p className="mb-4 text-sm text-slate-500">
+    <section className={cardSectionMobile}>
+      <h2 className={`${pageTitle} mb-1`}>Consulta</h2>
+      <p className={`${pageSubtitle} mb-4`}>
         Busque o paciente e preencha a prescrição. A recepção envia para a ótica.
       </p>
 
-      {successMessage && (
-        <p className="mb-4 rounded-lg bg-teal-50 px-3 py-2 text-sm text-teal-800">
-          {successMessage}
-        </p>
-      )}
-
-      {errorMessage && (
-        <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-          {errorMessage}
-        </p>
-      )}
+      {successMessage && <p className={`${alertSuccess} mb-4`}>{successMessage}</p>}
+      {errorMessage && <p className={`${alertError} mb-4`}>{errorMessage}</p>}
 
       <div className="mb-6">
-        <label htmlFor="patient-search" className="mb-1 block text-sm font-medium text-slate-700">
+        <label htmlFor="patient-search" className={labelClass}>
           Paciente
         </label>
 
         {selectedPatient ? (
-          <div className="flex flex-col gap-3 rounded-xl border border-teal-200 bg-teal-50 px-3 py-3">
+          <div className="flex flex-col gap-3 rounded-xl border border-teal-200 bg-teal-50 px-3 py-3 dark:border-teal-800 dark:bg-teal-950/30">
             <div>
-              <p className="font-medium text-slate-800">{selectedPatient.name}</p>
-              <p className="text-sm text-slate-500">CPF {selectedPatient.cpf}</p>
-              <p className="text-sm font-medium text-teal-800">
+              <p className="font-medium text-slate-800 dark:text-slate-100">{selectedPatient.name}</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">CPF {selectedPatient.cpf}</p>
+              <p className="text-sm font-medium text-teal-800 dark:text-teal-300">
                 Localidade: {getStoreName(selectedPatient.storeId)}
               </p>
+              {selectedPatient.notes ? (
+                <div className="mt-3 rounded-lg bg-white px-3 py-2 ring-1 ring-teal-200 dark:bg-slate-900 dark:ring-teal-900">
+                  <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-teal-800 dark:text-teal-300">
+                    Observações da recepção
+                  </p>
+                  <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+                    {selectedPatient.notes}
+                  </p>
+                </div>
+              ) : null}
             </div>
             <button
               type="button"
               onClick={() => setSelectedPatient(null)}
-              className="min-h-12 rounded-xl bg-white px-3 py-3 text-sm font-medium text-slate-700 ring-1 ring-slate-200"
+              className="min-h-12 rounded-xl bg-white px-3 py-3 text-sm font-medium text-slate-700 ring-1 ring-slate-200 dark:bg-slate-900 dark:text-slate-200 dark:ring-slate-700"
             >
               Trocar paciente
             </button>
@@ -228,27 +228,30 @@ function ConsultationPage() {
             />
 
             {patients.length === 0 ? (
-              <p className="mt-2 text-sm text-slate-500">
+              <p className={`${pageSubtitle} mt-2`}>
                 Nenhum paciente cadastrado. Cadastre na aba Pacientes.
               </p>
             ) : (
-              <ul className="mt-2 max-h-56 overflow-y-auto rounded-xl border border-slate-200">
+              <ul className="mt-2 max-h-56 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700">
                 {filteredPatients.length === 0 ? (
-                  <li className="px-3 py-3 text-sm text-slate-500">
+                  <li className="px-3 py-3 text-sm text-slate-500 dark:text-slate-400">
                     Nenhum paciente encontrado.
                   </li>
                 ) : (
                   filteredPatients.map((patient) => (
-                    <li key={patient.id} className="border-b border-slate-100 last:border-b-0">
+                    <li
+                      key={patient.id}
+                      className="border-b border-slate-100 last:border-b-0 dark:border-slate-800"
+                    >
                       <button
                         type="button"
                         onClick={() => handleSelectPatient(patient)}
-                        className="flex min-h-14 w-full flex-col justify-center px-3 py-3 text-left active:bg-slate-50"
+                        className="flex min-h-14 w-full flex-col justify-center px-3 py-3 text-left active:bg-slate-50 dark:active:bg-slate-800"
                       >
-                        <span className="text-base font-medium text-slate-800">
+                        <span className="text-base font-medium text-slate-800 dark:text-slate-100">
                           {patient.name}
                         </span>
-                        <span className="text-sm text-slate-500">{patient.cpf}</span>
+                        <span className="text-sm text-slate-500 dark:text-slate-400">{patient.cpf}</span>
                       </button>
                     </li>
                   ))
@@ -261,23 +264,13 @@ function ConsultationPage() {
 
       <form onSubmit={handleSubmit}>
         <div className="mb-4 grid grid-cols-1 gap-3">
-          <EyeFields
-            title="Olho direito (OD)"
-            eyeKey="od"
-            values={rightEye}
-            onChange={handleEyeChange}
-          />
-          <EyeFields
-            title="Olho esquerdo (OE)"
-            eyeKey="oe"
-            values={leftEye}
-            onChange={handleEyeChange}
-          />
+          <EyeFields title="Olho direito (OD)" eyeKey="od" values={rightEye} onChange={handleEyeChange} />
+          <EyeFields title="Olho esquerdo (OE)" eyeKey="oe" values={leftEye} onChange={handleEyeChange} />
         </div>
 
         <div className="mb-4 grid grid-cols-1 gap-3">
           <div>
-            <label htmlFor="phone" className="mb-1 block text-sm font-medium text-slate-700">
+            <label htmlFor="phone" className={labelClass}>
               Telefone
             </label>
             <input
@@ -291,7 +284,7 @@ function ConsultationPage() {
             />
           </div>
           <div>
-            <label htmlFor="doctorName" className="mb-1 block text-sm font-medium text-slate-700">
+            <label htmlFor="doctorName" className={labelClass}>
               Médico
             </label>
             <input
@@ -304,8 +297,8 @@ function ConsultationPage() {
             />
           </div>
           <div>
-            <p className="mb-1 text-sm font-medium text-slate-700">Ótica de destino</p>
-            <p className="rounded-xl bg-teal-50 px-3 py-3 text-base font-medium text-teal-900">
+            <p className={labelClass.replace('mb-1', 'mb-1')}>Ótica de destino</p>
+            <p className="rounded-xl bg-teal-50 px-3 py-3 text-base font-medium text-teal-900 dark:bg-teal-950/40 dark:text-teal-200">
               {selectedPatient
                 ? getStoreName(selectedPatient.storeId)
                 : 'Defina a localidade no cadastro'}
@@ -328,7 +321,7 @@ function ConsultationPage() {
         />
 
         <div className={isDoctor ? 'mb-24' : 'mb-4'}>
-          <label htmlFor="notes" className="mb-1 block text-sm font-medium text-slate-700">
+          <label htmlFor="notes" className={labelClass}>
             Observações
           </label>
           <textarea
@@ -344,7 +337,7 @@ function ConsultationPage() {
         <div
           className={
             isDoctor
-              ? 'fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-30 border-t border-slate-200 bg-white/95 p-3 backdrop-blur'
+              ? 'fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-30 border-t border-slate-200 bg-white/95 p-3 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95'
               : ''
           }
         >

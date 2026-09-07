@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
 import ClinicLogo from '../components/ClinicLogo.jsx'
+import ThemeToggle from '../components/ThemeToggle.jsx'
 import { supabase } from '../supabaseClient.js'
 import { staffEmail } from '../staffAuth.js'
-
-const fieldClass =
-  'w-full min-h-12 rounded-xl border border-slate-200 px-3 py-3 text-base text-slate-800 outline-none placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-100'
+import { alertError, alertSuccess, inputClass, labelClass, pageTitle } from '../uiClasses.js'
 
 function LoginPage() {
   const [username, setUsername] = useState('')
@@ -76,32 +75,28 @@ function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center bg-slate-100 px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
-      <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-sm">
+    <div className="relative flex min-h-dvh flex-col items-center justify-center bg-slate-100 px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] dark:bg-slate-950">
+      <div className="absolute right-4 top-4 pt-[env(safe-area-inset-top)]">
+        <ThemeToggle />
+      </div>
+
+      <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-sm dark:bg-slate-900 dark:ring-1 dark:ring-slate-800 dark:shadow-none">
         <ClinicLogo className="mx-auto mb-4 h-20 w-auto" />
-        <h1 className="mb-1 text-center text-xl font-semibold text-slate-800">
+        <h1 className={`${pageTitle} mb-1 text-center`}>
           {mode === 'bootstrap' ? 'Criar acesso do coordenador' : 'Entrar'}
         </h1>
-        <p className="mb-5 text-center text-sm text-slate-500">
+        <p className="mb-5 text-center text-sm text-slate-500 dark:text-slate-400">
           {mode === 'bootstrap'
             ? 'Primeiro acesso geral. Sem e-mail, só usuário e senha.'
             : 'Use o usuário e a senha da sua localidade.'}
         </p>
 
-        {errorMessage && (
-          <p className="mb-3 rounded-xl bg-red-50 px-3 py-3 text-sm text-red-700">
-            {errorMessage}
-          </p>
-        )}
+        {errorMessage && <p className={`${alertError} mb-3`}>{errorMessage}</p>}
 
-        {infoMessage && (
-          <p className="mb-3 rounded-xl bg-teal-50 px-3 py-3 text-sm text-teal-800">
-            {infoMessage}
-          </p>
-        )}
+        {infoMessage && <p className={`${alertSuccess} mb-3`}>{infoMessage}</p>}
 
         <form onSubmit={handleSubmit}>
-          <label htmlFor="username" className="mb-1 block text-sm font-medium text-slate-700">
+          <label htmlFor="username" className={labelClass}>
             Usuário
           </label>
           <input
@@ -114,10 +109,10 @@ function LoginPage() {
             placeholder="ex: coordenacao"
             required
             minLength={3}
-            className={`${fieldClass} mb-3`}
+            className={`${inputClass} mb-3`}
           />
 
-          <label htmlFor="password" className="mb-1 block text-sm font-medium text-slate-700">
+          <label htmlFor="password" className={labelClass}>
             Senha
           </label>
           <input
@@ -128,7 +123,7 @@ function LoginPage() {
             onChange={(event) => setPassword(event.target.value)}
             required
             minLength={6}
-            className={`${fieldClass} mb-5`}
+            className={`${inputClass} mb-5`}
           />
 
           <button

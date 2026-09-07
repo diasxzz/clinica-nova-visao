@@ -1,4 +1,5 @@
 import { AuthProvider, useAuth } from './AuthContext.jsx'
+import { ThemeProvider } from './ThemeContext.jsx'
 import { useEffect, useState } from 'react'
 import Navbar from './components/Navbar.jsx'
 import PatientsPage from './pages/PatientsPage.jsx'
@@ -26,7 +27,7 @@ function AppShell() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-slate-100 text-slate-500">
+      <div className="flex min-h-dvh items-center justify-center bg-slate-100 text-slate-500 dark:bg-slate-950 dark:text-slate-400">
         Carregando...
       </div>
     )
@@ -37,7 +38,9 @@ function AppShell() {
   }
 
   return (
-    <div className={`min-h-dvh bg-slate-100 print:bg-white ${desktop ? 'desktop-shell' : 'mobile-shell'}`}>
+    <div
+      className={`min-h-dvh bg-slate-100 print:bg-white dark:bg-slate-950 ${desktop ? 'desktop-shell' : 'mobile-shell'}`}
+    >
       <Navbar currentPage={currentPage} onChangePage={setCurrentPage} />
 
       <main
@@ -60,9 +63,11 @@ function AppShell() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppShell />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AppShell />
+      </AuthProvider>
+    </ThemeProvider>
   )
 }
 

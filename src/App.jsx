@@ -11,7 +11,16 @@ import TeamPage from './pages/TeamPage.jsx'
 import { canAccessPage, defaultPageForRole, usesDesktopShell } from './roles.js'
 
 function AppShell() {
-  const { session, isLoading, isAdmin, role, mustChangePassword, authError, signOut } = useAuth()
+  const {
+    session,
+    profile,
+    isLoading,
+    isAdmin,
+    role,
+    mustChangePassword,
+    authError,
+    signOut,
+  } = useAuth()
   const [currentPage, setCurrentPage] = useState('consultation')
 
   useEffect(() => {

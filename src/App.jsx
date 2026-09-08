@@ -28,8 +28,18 @@ function AppShell() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-slate-100 text-slate-500 dark:bg-slate-950 dark:text-slate-400">
-        Carregando...
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-slate-100 px-4 text-slate-500 dark:bg-slate-950 dark:text-slate-400">
+        <p>Carregando...</p>
+        {authError ? <p className="max-w-sm text-center text-sm text-red-600 dark:text-red-300">{authError}</p> : null}
+        {authError ? (
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white"
+          >
+            Recarregar
+          </button>
+        ) : null}
       </div>
     )
   }

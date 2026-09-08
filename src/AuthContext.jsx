@@ -2,84 +2,106 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase, supabaseConfigured } from './supabaseClient.js'
 
 const AuthContext = createContext(null)
-const AUTH_TIMEOUT_MS = 8000
+const AUTH_TIMEOUT_MS = 5000
+const MAX_BOOT_MS = 3000
 
-function withTimeout(promise, ms, label) {
+function withTimeout(promise, ms) {
   return Promise.race([
     promise,
     new Promise((_, reject) => {
-      window.setTimeout(() => reject(new Error(label)), ms)
+      window.setTimeout(() => reject(new Error('timeout')), ms)
     }),
   ])
 }
 
-export function AuthProvider({ children }) {
-  const [session, setSession] = useState(undefined)
-  const [profile, setProfile] = useState(undefined)
-  const [authError, setAuthError] = useState('')
-
-  async function loadProfile(userId) {
-    if (!userId) {
-      return null
-    }
-
-    let { data, error } = await supabase
-      .from('staff')
-      .select('username, role, store_id, must_change_password')
-      .eq('user_id', userId)
-      .maybeSingle()
-
-    if (error) {
-      ;({ data, error } = await supabase
-        .from('staff')
-        .select('username, role, store_id')
-        .eq('user_id', userId)
-        .maybeSingle())
-    }
-
-    if (error) {
-      console.error(error)
-      return null
-    }
-
-    if (!data) {
-      return null
-    }
-
-    return {
-      username: data.username,
-      role: data.role,
-      storeId: data.store_id,
-      mustChangePassword: Boolean(data.must_change_password),
-      isAdmin: data.role === 'admin',
-      isDoctor: data.role === 'doctor',
-      isReception: data.role === 'reception',
-    }
+async function fetchProfile(userId) {
+  if (!userId) {
+    return null
   }
 
+  let { data, error } = await supabase
+    .from('staff')
+    .select('username, role, store_id, must_change_password')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (error) {
+    ;({ data, error } = await supabase
+      .from('staff')
+      .select('username, role, store_id')
+      .eq('user_id', userId)
+      .maybeSingle())
+  }
+
+  if (error || !data) {
+    console.error(error)
+    return null
+  }
+
+  return {
+    username: data.username,
+    role: data.role,
+    storeId: data.store_id,
+    mustChangePassword: Boolean(data.must_change_password),
+    isAdmin: data.role === 'admin',
+    isDoctor: data.role === 'doctor',
+    isReception: data.role === 'reception',
+  }
+}
+
+export function AuthProvider({ children }) {
+  const [session, setSession] = useState(null)
+  const [profile, setProfile] = useState(null)
+  const [ready, setReady] = useState(false)
+  const [authError, setAuthError] = useState('')
+
   async function refreshProfile() {
-    const nextProfile = await loadProfile(session?.user?.id)
+    const nextProfile = await fetchProfile(session?.user?.id)
     setProfile(nextProfile)
   }
 
   useEffect(() => {
     let active = true
 
-    async function bootstrap() {
-      if (!supabaseConfigured) {
-        if (!active) return
-        setAuthError('Supabase não configurado. Rode o build com o arquivo .env do servidor.')
-        setSession(null)
+    async function applySession(nextSession) {
+      if (!active) {
+        return
+      }
+
+      setSession(nextSession)
+      setAuthError('')
+
+      if (!nextSession?.user?.id) {
         setProfile(null)
         return
       }
 
       try {
-        const { data, error } = await withTimeout(
-          supabase.auth.getSession(),
-          AUTH_TIMEOUT_MS,
-          'auth-timeout',
-        )
+        const nextProfile = await withTimeout(fetchProfile(nextSession.user.id), AUTH_TIMEOUT_MS)
+        if (active) {
+          setProfile(nextProfile)
+        }
+      } catch (error) {
+        console.error(error)
+        if (active) {
+          setProfile(null)
+          setAuthError('Não foi possível carregar seu perfil. Tente entrar de novo.')
+        }
+      }
+    }
+
+    async function bootstrap() {
+      if (!supabaseConfigured) {
+        if (!active) return
+        setAuthError('Supabase não configurado no servidor. Refaça o build com o .env.')
+        setSession(null)
+        setProfile(null)
+        setReady(true)
+        return
+      }
+
+      try {
+        const { data, error } = await withTimeout(supabase.auth.getSession(), AUTH_TIMEOUT_MS)
 
         if (!active) return
 
@@ -87,35 +109,25 @@ export function AuthProvider({ children }) {
           throw error
         }
 
-        const nextSession = data.session ?? null
-        setSession(nextSession)
-
-        if (!nextSession?.user?.id) {
-          setProfile(null)
-          return
-        }
-
-        const nextProfile = await withTimeout(
-          loadProfile(nextSession.user.id),
-          AUTH_TIMEOUT_MS,
-          'profile-timeout',
-        )
-
-        if (!active) return
-        setProfile(nextProfile)
+        await applySession(data.session ?? null)
       } catch (error) {
         console.error(error)
         if (!active) return
-
         setSession(null)
         setProfile(null)
-        setAuthError(
-          error.message === 'auth-timeout' || error.message === 'profile-timeout'
-            ? 'A conexão demorou demais. Recarregue a página.'
-            : 'Não foi possível iniciar o sistema. Recarregue a página.',
-        )
+        setAuthError('Não foi possível conectar. Verifique a internet e recarregue.')
+      } finally {
+        if (active) {
+          setReady(true)
+        }
       }
     }
+
+    const bootTimer = window.setTimeout(() => {
+      if (active) {
+        setReady(true)
+      }
+    }, MAX_BOOT_MS)
 
     bootstrap()
 
@@ -126,31 +138,12 @@ export function AuthProvider({ children }) {
         return
       }
 
-      const userId = nextSession?.user?.id
-      setSession(nextSession ?? null)
-      setAuthError('')
-
-      if (!userId) {
-        setProfile(null)
-        return
-      }
-
-      void withTimeout(loadProfile(userId), AUTH_TIMEOUT_MS, 'profile-timeout')
-        .then((nextProfile) => {
-          if (active) {
-            setProfile(nextProfile)
-          }
-        })
-        .catch((error) => {
-          console.error(error)
-          if (active) {
-            setProfile(null)
-          }
-        })
+      void applySession(nextSession ?? null)
     })
 
     return () => {
       active = false
+      window.clearTimeout(bootTimer)
       subscription.unsubscribe()
     }
   }, [])
@@ -165,7 +158,7 @@ export function AuthProvider({ children }) {
     isReception: Boolean(profile?.isReception),
     mustChangePassword: Boolean(profile?.mustChangePassword),
     role: profile?.role ?? null,
-    isLoading: session === undefined || (Boolean(session) && profile === undefined),
+    isLoading: !ready,
     refreshProfile,
     signOut: () => supabase.auth.signOut(),
   }

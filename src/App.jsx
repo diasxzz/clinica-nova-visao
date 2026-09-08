@@ -11,7 +11,7 @@ import TeamPage from './pages/TeamPage.jsx'
 import { canAccessPage, defaultPageForRole, usesDesktopShell } from './roles.js'
 
 function AppShell() {
-  const { session, isLoading, isAdmin, role, mustChangePassword, authError } = useAuth()
+  const { session, isLoading, isAdmin, role, mustChangePassword, authError, signOut } = useAuth()
   const [currentPage, setCurrentPage] = useState('consultation')
 
   useEffect(() => {
@@ -46,12 +46,19 @@ function AppShell() {
 
   if (authError && !session) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-slate-100 px-4 dark:bg-slate-950">
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-slate-100 px-4 dark:bg-slate-950">
         <div className="max-w-md rounded-xl bg-white p-5 text-center shadow-sm dark:bg-slate-900 dark:ring-1 dark:ring-slate-800">
           <p className="mb-2 text-base font-semibold text-slate-800 dark:text-slate-100">
             Erro ao iniciar o sistema
           </p>
-          <p className="text-sm text-slate-600 dark:text-slate-400">{authError}</p>
+          <p className="mb-4 text-sm text-slate-600 dark:text-slate-400">{authError}</p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white"
+          >
+            Recarregar
+          </button>
         </div>
       </div>
     )
@@ -59,6 +66,28 @@ function AppShell() {
 
   if (!session) {
     return <LoginPage />
+  }
+
+  if (!profile) {
+    return (
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-slate-100 px-4 dark:bg-slate-950">
+        <div className="max-w-md rounded-xl bg-white p-5 text-center shadow-sm dark:bg-slate-900 dark:ring-1 dark:ring-slate-800">
+          <p className="mb-2 text-base font-semibold text-slate-800 dark:text-slate-100">
+            Acesso não encontrado
+          </p>
+          <p className="mb-4 text-sm text-slate-600 dark:text-slate-400">
+            {authError || 'Este login não está vinculado à equipe da clínica.'}
+          </p>
+          <button
+            type="button"
+            onClick={() => signOut()}
+            className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white"
+          >
+            Voltar ao login
+          </button>
+        </div>
+      </div>
+    )
   }
 
   if (mustChangePassword) {

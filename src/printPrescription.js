@@ -32,33 +32,16 @@ function logoUrl() {
   return `${window.location.origin}${logo}`
 }
 
-function dpCellHtml(right, left) {
+function visionTableHtml(title, right, left, near = false, addition = '') {
   const dp = formatDpCell(right, left)
 
-  return `
-    <td class="dp" rowspan="2">
-      <div class="dp-value">${escapeHtml(dp)}</div>
-      <span class="dp-mm">mm</span>
-    </td>
-  `
-}
-
-function eyeRowHtml(eye, near, addition) {
-  function sphere() {
+  function sphere(eye) {
     if (near) {
       return escapeHtml(addDegrees(eye.spherical, addition))
     }
     return escapeHtml(formatDegree(eye.spherical))
   }
 
-  return `
-    <td>${sphere()}</td>
-    <td>${escapeHtml(formatDegree(eye.cylindrical))}</td>
-    <td>${escapeHtml(formatAxis(eye.axis))}</td>
-  `
-}
-
-function combinedVisionTableHtml(right, left, addition) {
   return `
     <table>
       <thead>
@@ -73,24 +56,21 @@ function combinedVisionTableHtml(right, left, addition) {
       </thead>
       <tbody>
         <tr>
-          <td class="side" rowspan="2">Para Longe</td>
+          <td class="side" rowspan="2">${escapeHtml(title)}</td>
           <td class="eye">O.D</td>
-          ${eyeRowHtml(right, false, addition)}
-          ${dpCellHtml(right, left)}
+          <td>${sphere(right)}</td>
+          <td>${escapeHtml(formatDegree(right.cylindrical))}</td>
+          <td>${escapeHtml(formatAxis(right.axis))}</td>
+          <td class="dp" rowspan="2">
+            <div class="dp-value">${escapeHtml(dp)}</div>
+            <span class="dp-mm">mm</span>
+          </td>
         </tr>
         <tr>
           <td class="eye">O.E.</td>
-          ${eyeRowHtml(left, false, addition)}
-        </tr>
-        <tr>
-          <td class="side" rowspan="2">Para Perto</td>
-          <td class="eye">O.D</td>
-          ${eyeRowHtml(right, true, addition)}
-          ${dpCellHtml(right, left)}
-        </tr>
-        <tr>
-          <td class="eye">O.E.</td>
-          ${eyeRowHtml(left, true, addition)}
+          <td>${sphere(left)}</td>
+          <td>${escapeHtml(formatDegree(left.cylindrical))}</td>
+          <td>${escapeHtml(formatAxis(left.axis))}</td>
         </tr>
       </tbody>
     </table>
@@ -122,46 +102,43 @@ export function printPrescription({ patient, prescription }) {
         <div class="toolbar no-print">
           <button class="print-btn no-print" type="button" onclick="window.print()">Imprimir</button>
         </div>
-        <div class="print-root">
         <article class="sheet">
           <div class="head">
             <img class="logo" src="${logoUrl()}" alt="Clínica Nova Visão" />
             <h1 class="title">Receituário Óptico</h1>
           </div>
 
-          <div class="patient">
-            <p class="field">
-              <span class="field-label">Nome:</span>
-              <span class="field-line">${escapeHtml(patient.name)}</span>
-            </p>
-            <p class="field">
-              <span class="field-label">Idade:</span>
-              <span class="field-age">${escapeHtml(age === '—' ? '' : `${age} anos`)}</span>
-            </p>
-          </div>
+          <p class="field">
+            <span class="field-label">Nome:</span>
+            <span class="field-line">${escapeHtml(patient.name)}</span>
+          </p>
+          <p class="field">
+            <span class="field-label">Idade:</span>
+            <span class="field-age">${escapeHtml(age === '—' ? '' : `${age} anos`)}</span>
+          </p>
 
-          ${combinedVisionTableHtml(right, left, addition)}
+          ${visionTableHtml('Para Longe', right, left)}
+          <div class="table-gap"></div>
+          ${visionTableHtml('Para Perto', right, left, true, addition)}
 
           <div class="addition">
             <div class="label">Adição</div>
             <div class="value">${escapeHtml(additionLine)}</div>
           </div>
 
-          <div class="options-grid">
-            <div class="section">
-              <p class="section-label">Lentes <span>:</span></p>
-              <div class="checks">
-                ${lensTypeChecks(prescription).map((item) => checkMarkup(prescription, item, escapeHtml)).join('')}
-              </div>
+          <div class="section">
+            <p class="section-label">Lentes <span>:</span></p>
+            <div class="checks">
+              ${lensTypeChecks(prescription).map((item) => checkMarkup(prescription, item, escapeHtml)).join('')}
             </div>
+          </div>
 
-            <div class="section">
-              <p class="section-label">Indicações de tratamento <span>:</span></p>
-              <div class="checks">
-                ${allTreatmentChecks(prescription)
-                  .map((item) => checkMarkup(prescription, item, escapeHtml))
-                  .join('')}
-              </div>
+          <div class="section">
+            <p class="section-label">Indicações de tratamento <span>:</span></p>
+            <div class="checks">
+              ${allTreatmentChecks(prescription)
+                .map((item) => checkMarkup(prescription, item, escapeHtml))
+                .join('')}
             </div>
           </div>
 
@@ -170,17 +147,20 @@ export function printPrescription({ patient, prescription }) {
             <div class="ruled">${escapeHtml(prescription.notes || '')}</div>
           </div>
 
-          <div class="bottom">
+          <div class="sign">
             <p class="sign-date">${escapeHtml(formatDateSlash(prescription.createdAt))}</p>
             <div class="sign-box">
               <div class="sign-line"></div>
               <span>Médico Responsável</span>
               ${prescription.doctorName ? `<small>${escapeHtml(prescription.doctorName)}</small>` : ''}
             </div>
-            <p class="footer">${escapeHtml(CLINIC_CONTACT.address)} · ${escapeHtml(CLINIC_CONTACT.phoneEmail)}</p>
+          </div>
+
+          <div class="footer">
+            <p>${escapeHtml(CLINIC_CONTACT.address)}</p>
+            <p>${escapeHtml(CLINIC_CONTACT.phoneEmail)}</p>
           </div>
         </article>
-        </div>
       </body>
     </html>
   `

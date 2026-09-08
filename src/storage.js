@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient.js'
+import { resolveAddition } from './prescriptionTemplate.js'
 
 function mapPatient(row) {
   return {
@@ -11,8 +12,6 @@ function mapPatient(row) {
     notes: row.notes ?? '',
   }
 }
-
-import { resolveAddition } from '../prescriptionTemplate.js'
 
 function mapPrescription(row) {
   const rightEye = row.right_eye ?? {}

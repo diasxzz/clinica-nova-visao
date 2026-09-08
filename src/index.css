@@ -62,7 +62,7 @@ html.dark .auth-panel {
 
 @media print {
   html {
-    font-size: 12px;
+    font-size: 11px;
   }
 
   html.dark body {
@@ -74,12 +74,15 @@ html.dark .auth-panel {
   }
 
   .prescription-sheet {
-    margin: 0;
-    max-width: none;
+    margin: 0 auto;
+    max-width: 200mm;
     min-height: auto;
     padding: 0;
     box-shadow: none;
     background: #fff !important;
     page-break-inside: avoid;
+    break-inside: avoid;
+    transform: scale(0.82);
+    transform-origin: top center;
   }
 }

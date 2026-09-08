@@ -4,7 +4,6 @@ export const CLINIC_CONTACT = {
   name: 'Clínica Nova Visão',
   address: 'Consultas de optometria e saúde visual',
   phoneEmail: 'Londrina · Campo Grande · Caxias do Sul',
-  website: 'www.clinicanovavisao.com.br',
 }
 
 export const PRESCRIPTION_PRINT_CSS = `

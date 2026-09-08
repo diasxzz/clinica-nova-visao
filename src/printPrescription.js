@@ -166,7 +166,6 @@ export function printPrescription({ patient, prescription }) {
           <div class="footer">
             <p>${escapeHtml(CLINIC_CONTACT.address)}</p>
             <p>${escapeHtml(CLINIC_CONTACT.phoneEmail)}</p>
-            <p>${escapeHtml(CLINIC_CONTACT.website)}</p>
           </div>
         </article>
       </body>

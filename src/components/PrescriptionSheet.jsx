@@ -184,7 +184,6 @@ function PrescriptionSheet({ patient, prescription }) {
       <footer className="pt-2 text-center text-[11px] leading-relaxed text-neutral-700">
         <p>{CLINIC_CONTACT.address}</p>
         <p>{CLINIC_CONTACT.phoneEmail}</p>
-        <p>{CLINIC_CONTACT.website}</p>
       </footer>
     </article>
   )

@@ -63,7 +63,7 @@ function VisionTable({ title, right, left, near = false, addition = '' }) {
           <th className={headerCell}>Esférico</th>
           <th className={headerCell}>Cilíndrico</th>
           <th className={headerCell}>Eixo</th>
-          <th className={`${headerCell} w-[72px]`}>D.P</th>
+          <th className={`${headerCell} w-[72px]`}>DNP</th>
         </tr>
       </thead>
       <tbody>

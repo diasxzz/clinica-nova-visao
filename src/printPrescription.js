@@ -53,7 +53,7 @@ function visionTableHtml(title, right, left, near = false, addition = '') {
           <th>Esférico</th>
           <th>Cilíndrico</th>
           <th>Eixo</th>
-          <th>D.P</th>
+          <th>DNP</th>
         </tr>
       </thead>
       <tbody>

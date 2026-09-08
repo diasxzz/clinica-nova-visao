@@ -1,15 +1,17 @@
 import { AuthProvider, useAuth } from './AuthContext.jsx'
+import { ThemeProvider } from './ThemeContext.jsx'
 import { useEffect, useState } from 'react'
 import Navbar from './components/Navbar.jsx'
 import PatientsPage from './pages/PatientsPage.jsx'
 import ConsultationPage from './pages/ConsultationPage.jsx'
 import ReceptionPage from './pages/ReceptionPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
+import ForcePasswordChangePage from './pages/ForcePasswordChangePage.jsx'
 import TeamPage from './pages/TeamPage.jsx'
 import { canAccessPage, defaultPageForRole, usesDesktopShell } from './roles.js'
 
 function AppShell() {
-  const { session, isLoading, isAdmin, role } = useAuth()
+  const { session, isLoading, isAdmin, role, mustChangePassword } = useAuth()
   const [currentPage, setCurrentPage] = useState('consultation')
 
   useEffect(() => {
@@ -26,7 +28,7 @@ function AppShell() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-slate-100 text-slate-500">
+      <div className="flex min-h-dvh items-center justify-center bg-slate-100 text-slate-500 dark:bg-slate-950 dark:text-slate-400">
         Carregando...
       </div>
     )
@@ -36,8 +38,14 @@ function AppShell() {
     return <LoginPage />
   }
 
+  if (mustChangePassword) {
+    return <ForcePasswordChangePage />
+  }
+
   return (
-    <div className={`min-h-dvh bg-slate-100 print:bg-white ${desktop ? 'desktop-shell' : 'mobile-shell'}`}>
+    <div
+      className={`min-h-dvh bg-slate-100 print:bg-white dark:bg-slate-950 ${desktop ? 'desktop-shell' : 'mobile-shell'}`}
+    >
       <Navbar currentPage={currentPage} onChangePage={setCurrentPage} />
 
       <main
@@ -60,9 +68,11 @@ function AppShell() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppShell />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AppShell />
+      </AuthProvider>
+    </ThemeProvider>
   )
 }
 

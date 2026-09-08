@@ -1,4 +1,5 @@
 import { STORES } from './stores.js'
+import { resolveAddition } from './prescriptionTemplate.js'
 
 export function hasMinimumExam(rightEye, leftEye) {
   return Boolean(rightEye?.spherical || leftEye?.spherical)
@@ -10,6 +11,7 @@ export async function sendExamToOtica({
   phone,
   rightEye,
   leftEye,
+  addition = '',
   notes,
   doctorName,
   dp,
@@ -39,7 +41,7 @@ export async function sendExamToOtica({
         oe_cilindrico: leftEye.cylindrical || '',
         oe_eixo: leftEye.axis || '',
         oe_dnp: leftEye.dnp || '',
-        adicao: rightEye.addition || leftEye.addition || '',
+        adicao: addition || '',
         dp: dp || '',
         medico: doctorName || '',
         data_exame: new Date().toISOString().slice(0, 10),
@@ -58,12 +60,16 @@ export async function sendExamToOtica({
 }
 
 export async function sendSavedPrescriptionToOtica({ patient, prescription }) {
+  const rightEye = prescription.rightEye ?? {}
+  const leftEye = prescription.leftEye ?? {}
+
   return sendExamToOtica({
     storeId: patient.storeId,
     patient,
     phone: patient.phone || '',
-    rightEye: prescription.rightEye,
-    leftEye: prescription.leftEye,
+    rightEye,
+    leftEye,
+    addition: resolveAddition(prescription, rightEye, leftEye),
     notes: prescription.notes,
     doctorName: prescription.doctorName,
     dp: prescription.dp,

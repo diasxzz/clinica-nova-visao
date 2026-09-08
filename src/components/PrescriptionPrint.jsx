@@ -1,5 +1,6 @@
 import { printPrescription } from '../printPrescription.js'
 import PrescriptionSheet from './PrescriptionSheet.jsx'
+import { btnPrimary, btnSecondary, pageSubtitle } from '../uiClasses.js'
 
 function PrescriptionPrint({ patient, prescription, onBack }) {
   function handlePrint() {
@@ -13,22 +14,14 @@ function PrescriptionPrint({ patient, prescription, onBack }) {
   return (
     <section>
       <div className="no-print mb-4 flex flex-col gap-2">
-        <p className="text-sm text-slate-500">
+        <p className={pageSubtitle}>
           Use o Chrome ou o Safari do computador para imprimir ou gerar PDF.
         </p>
         <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={onBack}
-            className="rounded-lg px-4 py-2 text-sm font-medium text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"
-          >
+          <button type="button" onClick={onBack} className={btnSecondary}>
             Voltar
           </button>
-          <button
-            type="button"
-            onClick={handlePrint}
-            className="no-print rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
-          >
+          <button type="button" onClick={handlePrint} className={`no-print ${btnPrimary}`}>
             Imprimir
           </button>
         </div>

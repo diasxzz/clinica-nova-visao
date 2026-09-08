@@ -1,9 +1,26 @@
 import { useEffect, useState } from 'react'
-import { getPatientsWithLatestPrescription, markPrescriptionSent } from '../storage.js'
+import { deletePrescription, getPatientsWithLatestPrescription, markPrescriptionSent } from '../storage.js'
 import { hasMinimumExam, sendSavedPrescriptionToOtica } from '../sendToOtica.js'
 import PrescriptionPrint from '../components/PrescriptionPrint.jsx'
 import SentStatus from '../components/SentStatus.jsx'
+import ConfirmDialog from '../components/ConfirmDialog.jsx'
 import { getStoreName } from '../stores.js'
+import { useAuth } from '../AuthContext.jsx'
+import {
+  alertError,
+  alertSuccess,
+  btnDanger,
+  btnPrimary,
+  btnSecondary,
+  cardSection,
+  pageSubtitle,
+  pageTitle,
+  searchInput,
+  tableCell,
+  tableCellStrong,
+  tableHead,
+  tableRow,
+} from '../uiClasses.js'
 
 function formatDate(value) {
   if (!value) {
@@ -14,12 +31,16 @@ function formatDate(value) {
 }
 
 function ReceptionPage() {
+  const { isAdmin, isReception } = useAuth()
+  const canDelete = isAdmin || isReception
   const [items, setItems] = useState([])
   const [search, setSearch] = useState('')
   const [selectedItem, setSelectedItem] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
   const [sendingId, setSendingId] = useState(null)
+  const [deletingId, setDeletingId] = useState(null)
+  const [pendingDelete, setPendingDelete] = useState(null)
 
   async function loadItems() {
     try {
@@ -73,6 +94,36 @@ function ReceptionPage() {
     }
   }
 
+  function requestDelete(item) {
+    if (!canDelete) {
+      return
+    }
+
+    setPendingDelete(item)
+  }
+
+  async function confirmDelete() {
+    if (!pendingDelete) {
+      return
+    }
+
+    setErrorMessage('')
+    setSuccessMessage('')
+    setDeletingId(pendingDelete.prescription.id)
+
+    try {
+      await deletePrescription(pendingDelete.prescription.id)
+      setSuccessMessage(`Receita de ${pendingDelete.patient.name} excluída.`)
+      setPendingDelete(null)
+      await loadItems()
+    } catch (error) {
+      setErrorMessage('Não foi possível excluir a receita.')
+      console.error(error)
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   const filteredItems = items.filter((item) => {
     const term = search.toLowerCase().trim()
     return (
@@ -83,7 +134,7 @@ function ReceptionPage() {
 
   if (selectedItem) {
     return (
-      <section className="w-full min-w-0 rounded-xl bg-white p-[clamp(1rem,2vw,1.75rem)] shadow-sm">
+      <section className={cardSection}>
         <PrescriptionPrint
           patient={selectedItem.patient}
           prescription={selectedItem.prescription}
@@ -94,69 +145,82 @@ function ReceptionPage() {
   }
 
   return (
-    <section className="w-full min-w-0 rounded-xl bg-white p-[clamp(1rem,2vw,1.75rem)] shadow-sm">
+    <>
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        title="Excluir receita?"
+        message={
+          pendingDelete
+            ? `Excluir a receita de ${pendingDelete.patient.name} (${formatDate(pendingDelete.prescription.createdAt)})? Esta ação não pode ser desfeita.`
+            : ''
+        }
+        isLoading={Boolean(pendingDelete && deletingId === pendingDelete.prescription.id)}
+        onConfirm={confirmDelete}
+        onCancel={() => {
+          if (!deletingId) {
+            setPendingDelete(null)
+          }
+        }}
+      />
+
+      <section className={cardSection}>
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold text-slate-800">Recepção</h2>
-          <p className="text-sm text-slate-500">Envie os dados e imprima a receita.</p>
+          <h2 className={pageTitle}>Recepção</h2>
+          <p className={pageSubtitle}>Envie os dados e imprima a receita.</p>
         </div>
         <input
           type="search"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Buscar por nome ou CPF"
-          className="w-full max-w-[min(18rem,100%)] rounded-lg border border-slate-200 px-3 py-2 text-slate-800 outline-none placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
+          className={`${searchInput} max-w-[min(18rem,100%)]`}
         />
       </div>
 
-      {successMessage && (
-        <p className="mb-4 rounded-lg bg-teal-50 px-3 py-2 text-sm text-teal-800">{successMessage}</p>
-      )}
-      {errorMessage && (
-        <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{errorMessage}</p>
-      )}
+      {successMessage && <p className={`${alertSuccess} mb-4`}>{successMessage}</p>}
+      {errorMessage && <p className={`${alertError} mb-4`}>{errorMessage}</p>}
 
       {filteredItems.length === 0 ? (
-        <p className="text-sm text-slate-500">Nenhum paciente com receita cadastrada.</p>
+        <p className={pageSubtitle}>Nenhum paciente com receita cadastrada.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full table-fixed text-left text-[clamp(0.75rem,0.95vw,0.9rem)]">
-            <thead className="border-b border-slate-200 bg-slate-50 text-[clamp(0.65rem,0.8vw,0.75rem)] font-semibold tracking-wide text-slate-500 uppercase">
+            <thead className={tableHead}>
               <tr>
                 <th className="w-[22%] px-3 py-2.5">Paciente</th>
                 <th className="w-[14%] px-3 py-2.5">CPF</th>
                 <th className="w-[14%] px-3 py-2.5">Localidade</th>
                 <th className="w-[12%] px-3 py-2.5">Consulta</th>
                 <th className="w-[18%] px-3 py-2.5">Status</th>
-                <th className="w-[20%] px-3 py-2.5 text-right">Ações</th>
+                <th className="w-[24%] px-3 py-2.5 text-right">Ações</th>
               </tr>
             </thead>
             <tbody>
               {filteredItems.map((item) => {
                 const sent = Boolean(item.prescription.sentToOticaAt)
                 const isSending = sendingId === item.prescription.id
+                const isDeleting = deletingId === item.prescription.id
 
                 return (
-                  <tr key={item.patient.id} className="border-b border-slate-100">
-                    <td className="truncate px-3 py-2.5 font-medium text-slate-800">{item.patient.name}</td>
-                    <td className="truncate px-3 py-2.5 text-slate-600">{item.patient.cpf}</td>
-                    <td className="truncate px-3 py-2.5 text-slate-600">{getStoreName(item.patient.storeId)}</td>
-                    <td className="truncate px-3 py-2.5 text-slate-600">
-                      {formatDate(item.prescription.createdAt)}
-                    </td>
+                  <tr key={item.patient.id} className={tableRow}>
+                    <td className={tableCellStrong}>{item.patient.name}</td>
+                    <td className={tableCell}>{item.patient.cpf}</td>
+                    <td className={tableCell}>{getStoreName(item.patient.storeId)}</td>
+                    <td className={tableCell}>{formatDate(item.prescription.createdAt)}</td>
                     <td className="px-3 py-2.5">
                       <SentStatus sentAt={item.prescription.sentToOticaAt} />
                     </td>
                     <td className="px-3 py-2.5">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex flex-wrap justify-end gap-2">
                         <button
                           type="button"
                           onClick={() => handleSend(item)}
-                          disabled={isSending}
+                          disabled={isSending || isDeleting}
                           className={
                             sent
-                              ? 'rounded-lg px-3 py-1.5 text-sm font-medium text-teal-800 ring-1 ring-teal-300 hover:bg-teal-50 disabled:opacity-60'
-                              : 'rounded-lg bg-teal-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-teal-700 disabled:opacity-60'
+                              ? 'rounded-lg px-3 py-1.5 text-sm font-medium text-teal-800 ring-1 ring-teal-300 hover:bg-teal-50 disabled:opacity-60 dark:text-teal-200 dark:ring-teal-700 dark:hover:bg-teal-950/40'
+                              : `${btnPrimary} px-3 py-1.5`
                           }
                         >
                           {isSending ? 'Enviando...' : sent ? 'Enviar de novo' : 'Enviar'}
@@ -164,10 +228,21 @@ function ReceptionPage() {
                         <button
                           type="button"
                           onClick={() => setSelectedItem(item)}
-                          className="rounded-lg px-3 py-1.5 text-sm font-medium text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"
+                          disabled={isDeleting}
+                          className={`${btnSecondary} px-3 py-1.5`}
                         >
                           Imprimir
                         </button>
+                        {canDelete ? (
+                          <button
+                            type="button"
+                            onClick={() => requestDelete(item)}
+                            disabled={isDeleting}
+                            className={`${btnDanger} px-3 py-1.5`}
+                          >
+                            Excluir
+                          </button>
+                        ) : null}
                       </div>
                     </td>
                   </tr>
@@ -177,7 +252,8 @@ function ReceptionPage() {
           </table>
         </div>
       )}
-    </section>
+      </section>
+    </>
   )
 }
 

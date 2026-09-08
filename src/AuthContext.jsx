@@ -15,7 +15,7 @@ export function AuthProvider({ children }) {
 
     const { data, error } = await supabase
       .from('staff')
-      .select('username, role, store_id')
+      .select('username, role, store_id, must_change_password')
       .eq('user_id', userId)
       .maybeSingle()
 
@@ -31,12 +31,17 @@ export function AuthProvider({ children }) {
             username: data.username,
             role: data.role,
             storeId: data.store_id,
+            mustChangePassword: Boolean(data.must_change_password),
             isAdmin: data.role === 'admin',
             isDoctor: data.role === 'doctor',
             isReception: data.role === 'reception',
           }
         : null,
     )
+  }
+
+  async function refreshProfile() {
+    await loadProfile(session?.user?.id)
   }
 
   useEffect(() => {
@@ -64,8 +69,10 @@ export function AuthProvider({ children }) {
     isAdmin: Boolean(profile?.isAdmin),
     isDoctor: Boolean(profile?.isDoctor),
     isReception: Boolean(profile?.isReception),
+    mustChangePassword: Boolean(profile?.mustChangePassword),
     role: profile?.role ?? null,
     isLoading: session === undefined || (session && profile === undefined),
+    refreshProfile,
     signOut: () => supabase.auth.signOut(),
   }
 

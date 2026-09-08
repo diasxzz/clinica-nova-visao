@@ -83,6 +83,7 @@ Deno.serve(async (req) => {
       username: cleanUser,
       role: job,
       store_id: store,
+      must_change_password: true,
     });
 
     if (staffError) throw staffError;

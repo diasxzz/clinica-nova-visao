@@ -1,14 +1,25 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 html {
   -webkit-tap-highlight-color: transparent;
   font-size: clamp(15px, 1.05vw + 11px, 20px);
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 body {
   margin: 0;
   min-width: 0;
   background: #f1f5f9;
+}
+
+html.dark body {
+  background: #020617;
 }
 
 .mobile-shell input,
@@ -32,12 +43,46 @@ body {
   object-position: center;
 }
 
+.auth-screen {
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+.auth-screen input,
+.auth-screen button {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.auth-panel {
+  box-shadow: 8px 8px 0 rgb(12 35 64 / 0.08);
+}
+
+html.dark .auth-panel {
+  box-shadow: 8px 8px 0 rgb(13 148 136 / 0.08);
+}
+
 @media print {
   html {
-    font-size: 16px;
+    font-size: 11px;
+  }
+
+  html.dark body {
+    background: #fff;
   }
 
   .no-print {
     display: none;
+  }
+
+  .prescription-sheet {
+    margin: 0 auto;
+    max-width: 200mm;
+    min-height: auto;
+    padding: 0;
+    box-shadow: none;
+    background: #fff !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    transform: scale(0.82);
+    transform-origin: top center;
   }
 }

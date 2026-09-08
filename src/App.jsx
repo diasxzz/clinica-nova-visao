@@ -11,7 +11,7 @@ import TeamPage from './pages/TeamPage.jsx'
 import { canAccessPage, defaultPageForRole, usesDesktopShell } from './roles.js'
 
 function AppShell() {
-  const { session, isLoading, isAdmin, role, mustChangePassword } = useAuth()
+  const { session, isLoading, isAdmin, role, mustChangePassword, authError } = useAuth()
   const [currentPage, setCurrentPage] = useState('consultation')
 
   useEffect(() => {
@@ -30,6 +30,19 @@ function AppShell() {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-slate-100 text-slate-500 dark:bg-slate-950 dark:text-slate-400">
         Carregando...
+      </div>
+    )
+  }
+
+  if (authError && !session) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-slate-100 px-4 dark:bg-slate-950">
+        <div className="max-w-md rounded-xl bg-white p-5 text-center shadow-sm dark:bg-slate-900 dark:ring-1 dark:ring-slate-800">
+          <p className="mb-2 text-base font-semibold text-slate-800 dark:text-slate-100">
+            Erro ao iniciar o sistema
+          </p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">{authError}</p>
+        </div>
       </div>
     )
   }

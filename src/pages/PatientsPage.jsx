@@ -7,6 +7,7 @@ import {
   getPrescriptionsByPatient,
 } from '../storage.js'
 import { formatAxis, formatDate, formatDegree } from '../formatPrescription.js'
+import { resolveAddition } from '../prescriptionTemplate.js'
 import { getStoreName } from '../stores.js'
 import SentStatus from '../components/SentStatus.jsx'
 import ConfirmDialog from '../components/ConfirmDialog.jsx'
@@ -76,8 +77,7 @@ function PrescriptionCard({ prescription, canDelete, isDeleting, onDelete }) {
             {formatDegree(prescription.rightEye.cylindrical)}
           </p>
           <p className="text-slate-600 dark:text-slate-400">
-            Eixo {formatAxis(prescription.rightEye.axis)} · Ad{' '}
-            {formatDegree(prescription.rightEye.addition)}
+            Eixo {formatAxis(prescription.rightEye.axis)}
           </p>
         </div>
         <div>
@@ -87,11 +87,16 @@ function PrescriptionCard({ prescription, canDelete, isDeleting, onDelete }) {
             {formatDegree(prescription.leftEye.cylindrical)}
           </p>
           <p className="text-slate-600 dark:text-slate-400">
-            Eixo {formatAxis(prescription.leftEye.axis)} · Ad{' '}
-            {formatDegree(prescription.leftEye.addition)}
+            Eixo {formatAxis(prescription.leftEye.axis)}
           </p>
         </div>
       </div>
+
+      {resolveAddition(prescription, prescription.rightEye, prescription.leftEye) ? (
+        <p className="mb-2 text-sm text-slate-600 dark:text-slate-400">
+          Adição {formatDegree(resolveAddition(prescription, prescription.rightEye, prescription.leftEye))}
+        </p>
+      ) : null}
 
       {prescription.lensTypes?.length > 0 && (
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">

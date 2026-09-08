@@ -16,6 +16,7 @@ import {
   formatTreatmentLine,
   lensTypeChecks,
   PRESCRIPTION_PRINT_CSS,
+  resolveAddition,
 } from './prescriptionTemplate.js'
 
 function escapeHtml(value) {
@@ -33,12 +34,12 @@ function logoUrl() {
   return `${window.location.origin}${logo}`
 }
 
-function visionTableHtml(title, right, left, near = false) {
+function visionTableHtml(title, right, left, near = false, addition = '') {
   const dp = formatDpCell(right, left)
 
   function sphere(eye) {
     if (near) {
-      return escapeHtml(addDegrees(eye.spherical, eye.addition))
+      return escapeHtml(addDegrees(eye.spherical, addition))
     }
     return escapeHtml(formatDegree(eye.spherical))
   }
@@ -89,7 +90,8 @@ export function printPrescription({ patient, prescription }) {
   const left = prescription.leftEye ?? {}
   const lensLine = formatLensLine(prescription)
   const treatmentLine = formatTreatmentLine(prescription)
-  const additionLine = formatAdditionLine(right, left)
+  const addition = resolveAddition(prescription, right, left)
+  const additionLine = formatAdditionLine(prescription, right, left)
   const age = ageFromBirth(patient.birthDate, prescription.createdAt)
 
   const html = `
@@ -121,7 +123,7 @@ export function printPrescription({ patient, prescription }) {
 
           ${visionTableHtml('Para Longe', right, left)}
           <div class="table-gap"></div>
-          ${visionTableHtml('Para Perto', right, left, true)}
+          ${visionTableHtml('Para Perto', right, left, true, addition)}
 
           <div class="addition">
             <div class="label">Adição</div>

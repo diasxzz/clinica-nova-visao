@@ -102,22 +102,29 @@ export function formatTreatmentLine(prescription) {
   return selected.length ? selected.join(' · ') : ''
 }
 
-export function formatAdditionLine(right, left) {
-  const od = right.addition
-  const oe = left.addition
+export function resolveAddition(prescription, right, left) {
+  if (prescription?.addition !== undefined && prescription?.addition !== '') {
+    return prescription.addition
+  }
 
-  if (!od && !oe) {
+  const od = right?.addition
+  const oe = left?.addition
+
+  if (od && oe && String(od) !== String(oe)) {
+    return od || oe
+  }
+
+  return od || oe || ''
+}
+
+export function formatAdditionLine(prescription, right, left) {
+  const addition = resolveAddition(prescription, right, left)
+
+  if (addition === '' || addition === null || addition === undefined) {
     return ''
   }
 
-  if (od && oe && String(od) === String(oe)) {
-    return String(od)
-  }
-
-  const parts = []
-  if (od) parts.push(`O.D ${od}`)
-  if (oe) parts.push(`O.E ${oe}`)
-  return parts.join(' · ')
+  return String(addition)
 }
 
 export function formatDpCell(right, left) {

@@ -10,6 +10,7 @@ import {
   chipOff,
   chipOn,
   inputClass,
+  inputClassSm,
   labelClass,
   pageSubtitle,
   pageTitle,
@@ -19,43 +20,64 @@ const emptyEye = {
   spherical: '',
   cylindrical: '',
   axis: '',
-  addition: '',
   dnp: '',
 }
 
-function EyeFields({ title, eyeKey, values, onChange }) {
-  const fields = [
-    { name: 'spherical', label: 'Esférico', placeholder: '-1.50' },
-    { name: 'addition', label: 'Adição', placeholder: '+2.00' },
-    { name: 'cylindrical', label: 'Cilíndrico', placeholder: '-0.75' },
-    { name: 'axis', label: 'Eixo', placeholder: '90' },
-    { name: 'dnp', label: 'DNP', placeholder: '32' },
+const eyeColumns = [
+  { name: 'spherical', label: 'Esférico', placeholder: '-1.50' },
+  { name: 'cylindrical', label: 'Cilíndrico', placeholder: '-0.75' },
+  { name: 'axis', label: 'Eixo', placeholder: '90' },
+  { name: 'dnp', label: 'DNP', placeholder: '32' },
+]
+
+function PrescriptionEyeGrid({ rightEye, leftEye, onChange }) {
+  const eyes = [
+    { key: 'od', label: 'O.D', values: rightEye },
+    { key: 'oe', label: 'O.E', values: leftEye },
   ]
 
   return (
-    <div className="rounded-2xl border border-slate-200 p-3 dark:border-slate-700 dark:bg-slate-950/40 sm:p-4">
-      <h3 className="mb-3 text-base font-semibold text-slate-800 dark:text-slate-100">{title}</h3>
-
-      <div className="grid grid-cols-2 gap-3">
-        {fields.map((field) => (
-          <div key={field.name} className={field.name === 'dnp' ? 'col-span-2 sm:col-span-1' : ''}>
-            <label htmlFor={`${eyeKey}-${field.name}`} className={labelClass}>
-              {field.label}
-            </label>
-            <input
-              id={`${eyeKey}-${field.name}`}
-              type="text"
-              inputMode="decimal"
-              autoComplete="off"
-              enterKeyHint="next"
-              value={values[field.name]}
-              onChange={(event) => onChange(eyeKey, field.name, event.target.value)}
-              placeholder={field.placeholder}
-              className={inputClass}
-            />
-          </div>
-        ))}
-      </div>
+    <div className="mb-4 overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700 dark:bg-slate-950/40">
+      <table className="w-full min-w-[36rem] border-collapse">
+        <thead>
+          <tr className="border-b border-slate-200 text-left dark:border-slate-700">
+            <th className="w-16 px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400" />
+            {eyeColumns.map((column) => (
+              <th
+                key={column.name}
+                className="px-2 py-2.5 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300"
+              >
+                {column.label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {eyes.map((eye) => (
+            <tr key={eye.key} className="border-b border-slate-100 last:border-b-0 dark:border-slate-800">
+              <td className="px-3 py-2 text-sm font-bold text-slate-800 dark:text-slate-100">
+                {eye.label}
+              </td>
+              {eyeColumns.map((column) => (
+                <td key={column.name} className="px-2 py-2">
+                  <input
+                    id={`${eye.key}-${column.name}`}
+                    type="text"
+                    inputMode="decimal"
+                    autoComplete="off"
+                    enterKeyHint="next"
+                    aria-label={`${eye.label} ${column.label}`}
+                    value={eye.values[column.name]}
+                    onChange={(event) => onChange(eye.key, column.name, event.target.value)}
+                    placeholder={column.placeholder}
+                    className={`${inputClassSm} min-h-11`}
+                  />
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }
@@ -91,6 +113,7 @@ function ConsultationPage() {
   const [selectedPatient, setSelectedPatient] = useState(null)
   const [rightEye, setRightEye] = useState(emptyEye)
   const [leftEye, setLeftEye] = useState(emptyEye)
+  const [addition, setAddition] = useState('')
   const [notes, setNotes] = useState('')
   const [phone, setPhone] = useState('')
   const [doctorName, setDoctorName] = useState('')
@@ -153,8 +176,8 @@ function ConsultationPage() {
     try {
       await savePrescription({
         patientId: selectedPatient.id,
-        rightEye,
-        leftEye,
+        rightEye: { ...rightEye, addition: addition.trim() },
+        leftEye: { ...leftEye, addition: '' },
         notes: notes.trim(),
         doctorName: doctorName.trim(),
         dp: '',
@@ -263,9 +286,27 @@ function ConsultationPage() {
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="mb-4 grid grid-cols-1 gap-3">
-          <EyeFields title="Olho direito (OD)" eyeKey="od" values={rightEye} onChange={handleEyeChange} />
-          <EyeFields title="Olho esquerdo (OE)" eyeKey="oe" values={leftEye} onChange={handleEyeChange} />
+        <PrescriptionEyeGrid rightEye={rightEye} leftEye={leftEye} onChange={handleEyeChange} />
+
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end">
+          <div className="sm:w-40">
+            <label htmlFor="addition" className={labelClass}>
+              Adição
+            </label>
+            <input
+              id="addition"
+              type="text"
+              inputMode="decimal"
+              autoComplete="off"
+              value={addition}
+              onChange={(event) => setAddition(event.target.value)}
+              placeholder="+2.00"
+              className={inputClassSm + ' min-h-11'}
+            />
+          </div>
+          <p className="pb-2 text-xs text-slate-500 dark:text-slate-400 sm:flex-1">
+            Um único valor para os dois olhos.
+          </p>
         </div>
 
         <div className="mb-4 grid grid-cols-1 gap-3">

@@ -15,6 +15,7 @@ import {
   formatTreatmentLine,
   isTreatmentCheckOn,
   lensTypeChecks,
+  resolveAddition,
 } from '../prescriptionTemplate.js'
 
 const border = 'border border-black'
@@ -52,7 +53,7 @@ function DpCell({ right, left }) {
   )
 }
 
-function VisionTable({ title, right, left, near = false }) {
+function VisionTable({ title, right, left, near = false, addition = '' }) {
   return (
     <table className="w-full border-collapse table-fixed">
       <thead>
@@ -72,7 +73,7 @@ function VisionTable({ title, right, left, near = false }) {
           </td>
           <td className={`${cell} font-bold`}>O.D</td>
           <td className={cell}>
-            {near ? addDegrees(right.spherical, right.addition) : formatDegree(right.spherical)}
+            {near ? addDegrees(right.spherical, addition) : formatDegree(right.spherical)}
           </td>
           <td className={cell}>{formatDegree(right.cylindrical)}</td>
           <td className={cell}>{formatAxis(right.axis)}</td>
@@ -81,7 +82,7 @@ function VisionTable({ title, right, left, near = false }) {
         <tr>
           <td className={`${cell} font-bold`}>O.E.</td>
           <td className={cell}>
-            {near ? addDegrees(left.spherical, left.addition) : formatDegree(left.spherical)}
+            {near ? addDegrees(left.spherical, addition) : formatDegree(left.spherical)}
           </td>
           <td className={cell}>{formatDegree(left.cylindrical)}</td>
           <td className={cell}>{formatAxis(left.axis)}</td>
@@ -96,7 +97,8 @@ function PrescriptionSheet({ patient, prescription }) {
   const left = prescription.leftEye ?? {}
   const lensLine = formatLensLine(prescription)
   const treatmentLine = formatTreatmentLine(prescription)
-  const additionLine = formatAdditionLine(right, left)
+  const addition = resolveAddition(prescription, right, left)
+  const additionLine = formatAdditionLine(prescription, right, left)
   const age = ageFromBirth(patient.birthDate, prescription.createdAt)
 
   return (
@@ -127,7 +129,7 @@ function PrescriptionSheet({ patient, prescription }) {
 
       <VisionTable title="Para Longe" right={right} left={left} />
       <div className="h-[18px]" />
-      <VisionTable title="Para Perto" right={right} left={left} near />
+      <VisionTable title="Para Perto" right={right} left={left} near addition={addition} />
 
       <div className={`mb-5 mt-[18px] grid min-h-[42px] grid-cols-[148px_1fr] ${border}`}>
         <div className="flex items-center justify-center border-r border-black text-[13px] font-bold uppercase tracking-[0.08em]">

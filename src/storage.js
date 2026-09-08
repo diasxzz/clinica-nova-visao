@@ -12,12 +12,18 @@ function mapPatient(row) {
   }
 }
 
+import { resolveAddition } from '../prescriptionTemplate.js'
+
 function mapPrescription(row) {
+  const rightEye = row.right_eye ?? {}
+  const leftEye = row.left_eye ?? {}
+
   return {
     id: row.id,
     patientId: row.patient_id,
-    rightEye: row.right_eye ?? {},
-    leftEye: row.left_eye ?? {},
+    rightEye,
+    leftEye,
+    addition: resolveAddition({ addition: row.addition }, rightEye, leftEye),
     notes: row.notes ?? '',
     doctorName: row.doctor_name ?? '',
     dp: row.dp ?? '',

@@ -12,8 +12,6 @@ import {
   CLINIC_CONTACT,
   formatAdditionLine,
   formatDpCell,
-  formatLensLine,
-  formatTreatmentLine,
   lensTypeChecks,
   PRESCRIPTION_PRINT_CSS,
   resolveAddition,
@@ -108,8 +106,6 @@ export function printPrescription({ patient, prescription }) {
 
   const right = prescription.rightEye ?? {}
   const left = prescription.leftEye ?? {}
-  const lensLine = formatLensLine(prescription)
-  const treatmentLine = formatTreatmentLine(prescription)
   const addition = resolveAddition(prescription, right, left)
   const additionLine = formatAdditionLine(prescription, right, left)
   const age = ageFromBirth(patient.birthDate, prescription.createdAt)
@@ -157,7 +153,6 @@ export function printPrescription({ patient, prescription }) {
               <div class="checks">
                 ${lensTypeChecks(prescription).map((item) => checkMarkup(prescription, item, escapeHtml)).join('')}
               </div>
-              <div class="ruled">${escapeHtml(lensLine)}</div>
             </div>
 
             <div class="section">
@@ -167,7 +162,6 @@ export function printPrescription({ patient, prescription }) {
                   .map((item) => checkMarkup(prescription, item, escapeHtml))
                   .join('')}
               </div>
-              <div class="ruled">${escapeHtml(treatmentLine)}</div>
             </div>
           </div>
 

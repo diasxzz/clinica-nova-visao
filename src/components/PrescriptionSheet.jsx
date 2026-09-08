@@ -11,8 +11,6 @@ import {
   CLINIC_CONTACT,
   formatAdditionLine,
   formatDpCell,
-  formatLensLine,
-  formatTreatmentLine,
   isTreatmentCheckOn,
   lensTypeChecks,
   resolveAddition,
@@ -107,8 +105,6 @@ function CombinedVisionTable({ right, left, addition }) {
 function PrescriptionSheet({ patient, prescription }) {
   const right = prescription.rightEye ?? {}
   const left = prescription.leftEye ?? {}
-  const lensLine = formatLensLine(prescription)
-  const treatmentLine = formatTreatmentLine(prescription)
   const addition = resolveAddition(prescription, right, left)
   const additionLine = formatAdditionLine(prescription, right, left)
   const age = ageFromBirth(patient.birthDate, prescription.createdAt)
@@ -158,7 +154,6 @@ function PrescriptionSheet({ patient, prescription }) {
               <CheckBox key={item.value} on={item.on} label={item.label} />
             ))}
           </div>
-          <p className="min-h-4 border-b border-black pb-0.5 text-[11px]">{lensLine}</p>
         </div>
 
         <div className="text-[11px] print:text-[10px]">
@@ -172,7 +167,6 @@ function PrescriptionSheet({ patient, prescription }) {
               />
             ))}
           </div>
-          <p className="min-h-4 border-b border-black pb-0.5 text-[11px]">{treatmentLine}</p>
         </div>
       </div>
 

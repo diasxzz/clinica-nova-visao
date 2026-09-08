@@ -19,9 +19,9 @@ import {
 } from '../prescriptionTemplate.js'
 
 const border = 'border border-black'
-const cell = `${border} px-2 py-2.5 text-center text-[13px]`
-const headerCell = `${cell} text-[11px] font-bold uppercase tracking-[0.08em]`
-const sideCell = `${cell} w-[108px] text-[13px] font-semibold capitalize`
+const cell = `${border} px-1.5 py-1.5 text-center text-[12px]`
+const headerCell = `${cell} text-[10px] font-bold uppercase tracking-[0.06em]`
+const sideCell = `${cell} w-[96px] text-[12px] font-semibold capitalize`
 
 function CheckBox({ on, label }) {
   return (
@@ -45,7 +45,7 @@ function DpCell({ right, left }) {
 
   return (
     <td rowSpan={2} className={`${cell} relative w-[72px] px-1 align-middle`}>
-      <div className="flex min-h-[72px] items-center justify-center pr-3">{dp}</div>
+      <div className="flex min-h-[52px] items-center justify-center pr-3">{dp}</div>
       <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[11px] font-bold [text-orientation:upright] [writing-mode:vertical-rl]">
         mm
       </span>
@@ -102,20 +102,20 @@ function PrescriptionSheet({ patient, prescription }) {
   const age = ageFromBirth(patient.birthDate, prescription.createdAt)
 
   return (
-    <article className="prescription-sheet mx-auto w-full max-w-[1145px] bg-gradient-to-b from-white from-[88%] to-[#e8f4fc] px-8 py-10 text-black dark:from-white dark:to-[#e8f4fc] sm:px-14 sm:py-12">
-      <header className="mb-7 text-center">
-        <div className="mb-3 flex justify-center">
-          <ClinicLogo className="h-[168px] w-auto" />
+    <article className="prescription-sheet mx-auto w-full max-w-[1145px] bg-gradient-to-b from-white from-[88%] to-[#e8f4fc] px-6 py-6 text-black dark:from-white dark:to-[#e8f4fc] sm:px-10 sm:py-8">
+      <header className="mb-4 text-center">
+        <div className="mb-2 flex justify-center">
+          <ClinicLogo className="h-24 w-auto print:h-[84px]" />
         </div>
-        <h1 className="text-[22px] font-bold uppercase tracking-[0.28em] text-black">
+        <h1 className="text-lg font-bold uppercase tracking-[0.18em] text-black print:text-base">
           Receituário Óptico
         </h1>
       </header>
 
-      <div className="mb-5 text-[15px] leading-relaxed text-black">
-        <p className="mb-3">
+      <div className="mb-3 flex flex-wrap gap-x-6 gap-y-1 text-[13px] leading-snug text-black print:mb-2 print:text-xs">
+        <p>
           <span className="font-bold">Nome:</span>{' '}
-          <span className="inline-block min-w-[72%] border-b border-black px-1 pb-0.5">
+          <span className="inline-block min-w-[12rem] border-b border-black px-1 pb-0.5">
             {patient.name}
           </span>
         </p>
@@ -128,32 +128,31 @@ function PrescriptionSheet({ patient, prescription }) {
       </div>
 
       <VisionTable title="Para Longe" right={right} left={left} />
-      <div className="h-[18px]" />
+      <div className="h-1.5 print:h-1" />
       <VisionTable title="Para Perto" right={right} left={left} near addition={addition} />
 
-      <div className={`mb-5 mt-[18px] grid min-h-[42px] grid-cols-[148px_1fr] ${border}`}>
-        <div className="flex items-center justify-center border-r border-black text-[13px] font-bold uppercase tracking-[0.08em]">
+      <div className={`mb-3 mt-2 grid min-h-[30px] grid-cols-[120px_1fr] ${border} print:mb-2 print:mt-1.5`}>
+        <div className="flex items-center justify-center border-r border-black text-[11px] font-bold uppercase tracking-[0.08em]">
           Adição
         </div>
-        <div className="flex items-center px-3 text-[14px]">{additionLine}</div>
+        <div className="flex items-center px-3 text-[12px]">{additionLine}</div>
       </div>
 
-      <div className="mb-4 text-[15px]">
-        <p className="mb-2 font-bold">
+      <div className="mb-2 text-[13px] print:mb-1.5 print:text-xs">
+        <p className="mb-1 font-bold">
           Lentes <span className="font-normal">:</span>
         </p>
-        <div className="mb-2 flex flex-wrap gap-x-4 gap-y-1">
+        <div className="mb-1 flex flex-wrap gap-x-3 gap-y-1">
           {lensTypeChecks(prescription).map((item) => (
             <CheckBox key={item.value} on={item.on} label={item.label} />
           ))}
         </div>
-        <p className="min-h-7 border-b border-black pb-1 text-[14px]">{lensLine}</p>
-        <p className="mt-2.5 min-h-7 border-b border-black pb-1 text-[14px]"></p>
+        <p className="min-h-5 border-b border-black pb-0.5 text-[12px] print:min-h-4">{lensLine}</p>
       </div>
 
-      <div className="mb-4 text-[15px]">
-        <p className="mb-2 font-bold">Indicações de tratamento :</p>
-        <div className="mb-2 flex flex-wrap gap-x-4 gap-y-1">
+      <div className="mb-2 text-[13px] print:mb-1.5 print:text-xs">
+        <p className="mb-1 font-bold">Indicações de tratamento :</p>
+        <div className="mb-1 flex flex-wrap gap-x-3 gap-y-1">
           {allTreatmentChecks(prescription).map((item) => (
             <CheckBox
               key={item.value}
@@ -162,26 +161,26 @@ function PrescriptionSheet({ patient, prescription }) {
             />
           ))}
         </div>
-        <p className="min-h-7 border-b border-black pb-1 text-[14px]">{treatmentLine}</p>
+        <p className="min-h-5 border-b border-black pb-0.5 text-[12px] print:min-h-4">{treatmentLine}</p>
       </div>
 
-      <div className="mb-8 text-[15px]">
-        <p className="mb-2 font-bold">Observações :</p>
-        <p className="min-h-7 border-b border-black pb-1 text-[14px]">{prescription.notes || ''}</p>
+      <div className="mb-4 text-[13px] print:mb-2 print:text-xs">
+        <p className="mb-1 font-bold">Observações :</p>
+        <p className="min-h-5 border-b border-black pb-0.5 text-[12px] print:min-h-4">{prescription.notes || ''}</p>
       </div>
 
-      <div className="mb-7 grid grid-cols-2 items-end gap-12 text-[15px]">
+      <div className="mb-4 grid grid-cols-2 items-end gap-8 text-[13px] print:mb-2 print:gap-6 print:text-xs">
         <p className="tracking-[0.08em]">{formatDateSlash(prescription.createdAt)}</p>
         <div className="text-center">
-          <div className="mb-1.5 min-h-[42px] border-b border-black"></div>
-          <p className="text-[12px] font-bold">Médico Responsável</p>
+          <div className="mb-1 min-h-7 border-b border-black print:min-h-6"></div>
+          <p className="text-[11px] font-bold">Médico Responsável</p>
           {prescription.doctorName ? (
-            <p className="mt-1 text-[11px] text-neutral-600">{prescription.doctorName}</p>
+            <p className="mt-0.5 text-[10px] text-neutral-600">{prescription.doctorName}</p>
           ) : null}
         </div>
       </div>
 
-      <footer className="pt-2 text-center text-[11px] leading-relaxed text-neutral-700">
+      <footer className="pt-1 text-center text-[10px] leading-snug text-neutral-700 print:pt-0">
         <p>{CLINIC_CONTACT.address}</p>
         <p>{CLINIC_CONTACT.phoneEmail}</p>
       </footer>

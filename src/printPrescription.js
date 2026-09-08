@@ -112,14 +112,16 @@ export function printPrescription({ patient, prescription }) {
             <h1 class="title">Receituário Óptico</h1>
           </div>
 
-          <p class="field">
-            <span class="field-label">Nome:</span>
-            <span class="field-line">${escapeHtml(patient.name)}</span>
-          </p>
-          <p class="field">
-            <span class="field-label">Idade:</span>
-            <span class="field-age">${escapeHtml(age === '—' ? '' : `${age} anos`)}</span>
-          </p>
+          <div class="patient">
+            <p class="field">
+              <span class="field-label">Nome:</span>
+              <span class="field-line">${escapeHtml(patient.name)}</span>
+            </p>
+            <p class="field">
+              <span class="field-label">Idade:</span>
+              <span class="field-age">${escapeHtml(age === '—' ? '' : `${age} anos`)}</span>
+            </p>
+          </div>
 
           ${visionTableHtml('Para Longe', right, left)}
           <div class="table-gap"></div>
@@ -136,7 +138,6 @@ export function printPrescription({ patient, prescription }) {
               ${lensTypeChecks(prescription).map((item) => checkMarkup(prescription, item, escapeHtml)).join('')}
             </div>
             <div class="ruled">${escapeHtml(lensLine)}</div>
-            <div class="ruled"></div>
           </div>
 
           <div class="section">

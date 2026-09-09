@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { emptyAnamnesis } from '../anamnesis.js'
+import AnamnesisForm from './AnamnesisForm.jsx'
 import { savePatient } from '../storage.js'
 import { STORES } from '../stores.js'
 import { useAuth } from '../AuthContext.jsx'
@@ -19,6 +21,7 @@ function PatientForm({ onSaved }) {
   const [cpf, setCpf] = useState('')
   const [phone, setPhone] = useState('')
   const [notes, setNotes] = useState('')
+  const [anamnesis, setAnamnesis] = useState(emptyAnamnesis)
   const [storeId, setStoreId] = useState(String(profile?.storeId || 1))
   const [successMessage, setSuccessMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
@@ -55,6 +58,7 @@ function PatientForm({ onSaved }) {
         cpf,
         phone: phone.trim(),
         notes: notes.trim(),
+        anamnesis,
         storeId,
       })
 
@@ -63,6 +67,7 @@ function PatientForm({ onSaved }) {
       setCpf('')
       setPhone('')
       setNotes('')
+      setAnamnesis(emptyAnamnesis())
       setStoreId(String(profile?.storeId || 1))
       setSuccessMessage('Paciente cadastrado com sucesso.')
       onSaved?.()
@@ -78,7 +83,9 @@ function PatientForm({ onSaved }) {
   return (
     <form onSubmit={handleSubmit} className="w-full">
       <h2 className={`${pageTitle} mb-1 text-lg`}>Novo paciente</h2>
-      <p className={`${pageSubtitle} mb-4`}>Preencha os dados para cadastrar o paciente.</p>
+      <p className={`${pageSubtitle} mb-4`}>
+        Cadastre o paciente e preencha a anamnese optométrica com ele na recepção.
+      </p>
 
       {successMessage && <p className={`${alertSuccess} mb-3`}>{successMessage}</p>}
       {errorMessage && <p className={`${alertError} mb-3`}>{errorMessage}</p>}
@@ -170,9 +177,16 @@ function PatientForm({ onSaved }) {
         </div>
       </div>
 
+      <AnamnesisForm
+        value={anamnesis}
+        onChange={setAnamnesis}
+        patientName={name}
+        birthDate={birthDate}
+      />
+
       <div className="mb-4">
         <label htmlFor="patientNotes" className={labelClass}>
-          Observações
+          Observações adicionais
         </label>
         <textarea
           id="patientNotes"

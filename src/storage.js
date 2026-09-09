@@ -10,6 +10,7 @@ function mapPatient(row) {
     phone: row.phone ?? '',
     storeId: row.store_id ?? 1,
     notes: row.notes ?? '',
+    anamnesis: row.anamnesis ?? {},
   }
 }
 
@@ -102,6 +103,7 @@ export async function savePatient(patient) {
       phone: patient.phone ?? '',
       store_id: Number(patient.storeId) || 1,
       notes: patient.notes ?? '',
+      anamnesis: patient.anamnesis ?? {},
     })
     .select()
     .single()

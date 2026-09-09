@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import AnamnesisSummary from '../components/AnamnesisSummary.jsx'
 import PatientForm from '../components/PatientForm.jsx'
 import {
   deletePatient,
@@ -317,10 +318,11 @@ function PatientsPage() {
             {selectedPatient.phone ? (
               <p className="text-sm text-slate-600 dark:text-slate-400">{selectedPatient.phone}</p>
             ) : null}
+            <AnamnesisSummary anamnesis={selectedPatient.anamnesis} />
             {selectedPatient.notes ? (
               <div className="mt-3 rounded-lg bg-white px-3 py-2 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700">
                 <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                  Observações
+                  Observações adicionais
                 </p>
                 <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
                   {selectedPatient.notes}

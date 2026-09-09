@@ -122,6 +122,7 @@ function PatientsPage() {
   const [patients, setPatients] = useState([])
   const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
+  const [editingPatient, setEditingPatient] = useState(null)
   const [selectedPatient, setSelectedPatient] = useState(null)
   const [prescriptions, setPrescriptions] = useState([])
   const [errorMessage, setErrorMessage] = useState('')
@@ -152,14 +153,21 @@ function PatientsPage() {
     )
   })
 
-  function handleSaved() {
+  async function handleFormSaved(savedPatient) {
+    const wasEditing = editingPatient
     setShowForm(false)
-    loadPatients()
+    setEditingPatient(null)
+    await loadPatients()
+
+    if (wasEditing && savedPatient) {
+      await openPatient(savedPatient)
+    }
   }
 
   async function openPatient(patient) {
     setSelectedPatient(patient)
     setShowForm(false)
+    setEditingPatient(null)
 
     try {
       const list = await getPrescriptionsByPatient(patient.id)
@@ -172,8 +180,18 @@ function PatientsPage() {
 
   function backToList() {
     setSelectedPatient(null)
+    setEditingPatient(null)
+    setShowForm(false)
     setPrescriptions([])
     loadPatients()
+  }
+
+  function startEditPatient() {
+    if (!selectedPatient) {
+      return
+    }
+
+    setEditingPatient(selectedPatient)
   }
 
   function requestDeletePatient() {
@@ -281,11 +299,8 @@ function PatientsPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          {(selectedPatient || showForm) && (
-            <button type="button" onClick={() => {
-              backToList()
-              setShowForm(false)
-            }} className={btnSecondary}>
+          {(selectedPatient || showForm || editingPatient) && (
+            <button type="button" onClick={backToList} className={btnSecondary}>
               Voltar à lista
             </button>
           )}
@@ -293,6 +308,7 @@ function PatientsPage() {
             type="button"
             onClick={() => {
               setSelectedPatient(null)
+              setEditingPatient(null)
               setShowForm((current) => !current)
             }}
             className={btnPrimary}
@@ -305,7 +321,13 @@ function PatientsPage() {
       {errorMessage && <p className={`${alertError} mb-4`}>{errorMessage}</p>}
 
       {showForm ? (
-        <PatientForm onSaved={handleSaved} />
+        <PatientForm onSaved={handleFormSaved} onCancel={backToList} />
+      ) : editingPatient ? (
+        <PatientForm
+          patient={editingPatient}
+          onSaved={handleFormSaved}
+          onCancel={() => setEditingPatient(null)}
+        />
       ) : selectedPatient ? (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(14rem,20%)_1fr]">
           <aside className={asidePanel}>
@@ -329,12 +351,15 @@ function PatientsPage() {
                 </p>
               </div>
             ) : null}
+            <button type="button" onClick={startEditPatient} className={`${btnPrimary} mt-4 w-full`}>
+              Editar cadastro
+            </button>
             {canDelete ? (
               <button
                 type="button"
                 onClick={requestDeletePatient}
                 disabled={deletingPatientId === selectedPatient.id}
-                className={`${btnDanger} mt-4 w-full`}
+                className={`${btnDanger} mt-3 w-full`}
               >
                 Excluir paciente
               </button>

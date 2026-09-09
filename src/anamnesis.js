@@ -32,6 +32,22 @@ export function emptyAnamnesis() {
   }
 }
 
+export function mergeAnamnesis(stored) {
+  const base = emptyAnamnesis()
+
+  if (!stored || typeof stored !== 'object') {
+    return base
+  }
+
+  return {
+    ...base,
+    ...stored,
+    pathologies: Array.isArray(stored.pathologies) ? stored.pathologies : [],
+    previousRx: { ...base.previousRx, ...(stored.previousRx ?? {}) },
+    currentRx: { ...base.currentRx, ...(stored.currentRx ?? {}) },
+  }
+}
+
 export function calculateAge(birthDate) {
   if (!birthDate) {
     return null

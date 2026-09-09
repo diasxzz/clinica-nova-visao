@@ -1,20 +1,22 @@
 import { useEffect, useState } from 'react'
-import { emptyAnamnesis } from '../anamnesis.js'
+import { emptyAnamnesis, mergeAnamnesis } from '../anamnesis.js'
 import AnamnesisForm from './AnamnesisForm.jsx'
-import { savePatient } from '../storage.js'
+import { savePatient, updatePatient } from '../storage.js'
 import { STORES } from '../stores.js'
 import { useAuth } from '../AuthContext.jsx'
 import {
   alertError,
   alertSuccess,
   btnPrimary,
+  btnSecondary,
   inputClassSm,
   labelClass,
   pageSubtitle,
   pageTitle,
 } from '../uiClasses.js'
 
-function PatientForm({ onSaved }) {
+function PatientForm({ patient, onSaved, onCancel }) {
+  const isEditing = Boolean(patient?.id)
   const { profile, isAdmin } = useAuth()
   const [name, setName] = useState('')
   const [birthDate, setBirthDate] = useState('')
@@ -33,6 +35,22 @@ function PatientForm({ onSaved }) {
     }
   }, [isAdmin, profile])
 
+  useEffect(() => {
+    if (!patient) {
+      return
+    }
+
+    setName(patient.name ?? '')
+    setBirthDate(patient.birthDate ?? '')
+    setCpf(patient.cpf ?? '')
+    setPhone(patient.phone ?? '')
+    setNotes(patient.notes ?? '')
+    setAnamnesis(mergeAnamnesis(patient.anamnesis))
+    setStoreId(String(patient.storeId ?? profile?.storeId ?? 1))
+    setSuccessMessage('')
+    setErrorMessage('')
+  }, [patient, profile?.storeId])
+
   function formatCpf(value) {
     const digits = value.replace(/\D/g, '').slice(0, 11)
 
@@ -46,34 +64,51 @@ function PatientForm({ onSaved }) {
     setCpf(formatCpf(event.target.value))
   }
 
+  function resetForm() {
+    setName('')
+    setBirthDate('')
+    setCpf('')
+    setPhone('')
+    setNotes('')
+    setAnamnesis(emptyAnamnesis())
+    setStoreId(String(profile?.storeId || 1))
+  }
+
   async function handleSubmit(event) {
     event.preventDefault()
     setErrorMessage('')
+    setSuccessMessage('')
     setIsSaving(true)
 
-    try {
-      await savePatient({
-        name: name.trim(),
-        birthDate,
-        cpf,
-        phone: phone.trim(),
-        notes: notes.trim(),
-        anamnesis,
-        storeId,
-      })
+    const payload = {
+      name: name.trim(),
+      birthDate,
+      cpf,
+      phone: phone.trim(),
+      notes: notes.trim(),
+      anamnesis,
+      storeId,
+    }
 
-      setName('')
-      setBirthDate('')
-      setCpf('')
-      setPhone('')
-      setNotes('')
-      setAnamnesis(emptyAnamnesis())
-      setStoreId(String(profile?.storeId || 1))
-      setSuccessMessage('Paciente cadastrado com sucesso.')
-      onSaved?.()
+    try {
+      const savedPatient = isEditing
+        ? await updatePatient(patient.id, payload)
+        : await savePatient(payload)
+
+      if (!isEditing) {
+        resetForm()
+      }
+
+      setSuccessMessage(
+        isEditing ? 'Cadastro atualizado com sucesso.' : 'Paciente cadastrado com sucesso.',
+      )
+      onSaved?.(savedPatient)
     } catch (error) {
-      setSuccessMessage('')
-      setErrorMessage('Não foi possível salvar o paciente. Tente de novo.')
+      setErrorMessage(
+        isEditing
+          ? 'Não foi possível atualizar o cadastro. Tente de novo.'
+          : 'Não foi possível salvar o paciente. Tente de novo.',
+      )
       console.error(error)
     } finally {
       setIsSaving(false)
@@ -82,9 +117,13 @@ function PatientForm({ onSaved }) {
 
   return (
     <form onSubmit={handleSubmit} className="w-full">
-      <h2 className={`${pageTitle} mb-1 text-lg`}>Novo paciente</h2>
+      <h2 className={`${pageTitle} mb-1 text-lg`}>
+        {isEditing ? 'Editar cadastro' : 'Novo paciente'}
+      </h2>
       <p className={`${pageSubtitle} mb-4`}>
-        Cadastre o paciente e preencha a anamnese optométrica com ele na recepção.
+        {isEditing
+          ? 'Atualize os dados e a anamnese optométrica do paciente.'
+          : 'Cadastre o paciente e preencha a anamnese optométrica com ele na recepção.'}
       </p>
 
       {successMessage && <p className={`${alertSuccess} mb-3`}>{successMessage}</p>}
@@ -198,9 +237,16 @@ function PatientForm({ onSaved }) {
         />
       </div>
 
-      <button type="submit" disabled={isSaving} className={`${btnPrimary} px-5 py-2`}>
-        {isSaving ? 'Salvando...' : 'Cadastrar paciente'}
-      </button>
+      <div className="flex flex-wrap gap-2">
+        <button type="submit" disabled={isSaving} className={`${btnPrimary} px-5 py-2`}>
+          {isSaving ? 'Salvando...' : isEditing ? 'Salvar alterações' : 'Cadastrar paciente'}
+        </button>
+        {onCancel ? (
+          <button type="button" onClick={onCancel} disabled={isSaving} className={btnSecondary}>
+            Cancelar
+          </button>
+        ) : null}
+      </div>
     </form>
   )
 }

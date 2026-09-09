@@ -93,18 +93,37 @@ export async function getPatients() {
   return (data ?? []).map(mapPatient)
 }
 
+function patientPayload(patient) {
+  return {
+    name: patient.name,
+    birth_date: patient.birthDate,
+    cpf: patient.cpf,
+    phone: patient.phone ?? '',
+    store_id: Number(patient.storeId) || 1,
+    notes: patient.notes ?? '',
+    anamnesis: patient.anamnesis ?? {},
+  }
+}
+
 export async function savePatient(patient) {
   const { data, error } = await supabase
     .from('patients')
-    .insert({
-      name: patient.name,
-      birth_date: patient.birthDate,
-      cpf: patient.cpf,
-      phone: patient.phone ?? '',
-      store_id: Number(patient.storeId) || 1,
-      notes: patient.notes ?? '',
-      anamnesis: patient.anamnesis ?? {},
-    })
+    .insert(patientPayload(patient))
+    .select()
+    .single()
+
+  if (error) {
+    throw error
+  }
+
+  return mapPatient(data)
+}
+
+export async function updatePatient(patientId, patient) {
+  const { data, error } = await supabase
+    .from('patients')
+    .update(patientPayload(patient))
+    .eq('id', patientId)
     .select()
     .single()
 

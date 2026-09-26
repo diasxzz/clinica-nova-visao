@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useInfiniteScroll } from '../hooks/useInfiniteScroll.js'
 import AnamnesisSummary from '../components/AnamnesisSummary.jsx'
 import PatientForm from '../components/PatientForm.jsx'
 import {
@@ -23,12 +24,16 @@ import {
   innerCard,
   pageSubtitle,
   pageTitle,
+  inputClassSm,
+  labelClass,
   searchInput,
   tableCell,
   tableCellStrong,
   tableHead,
   tableRowInteractive,
 } from '../uiClasses.js'
+
+const PAGE_SIZE = 50
 
 function formatBirthDate(value) {
   if (!value) {
@@ -121,6 +126,9 @@ function PatientsPage() {
   const canDelete = isAdmin || isReception
   const [patients, setPatients] = useState([])
   const [search, setSearch] = useState('')
+  const [consultDateFrom, setConsultDateFrom] = useState('')
+  const [consultDateTo, setConsultDateTo] = useState('')
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [showForm, setShowForm] = useState(false)
   const [editingPatient, setEditingPatient] = useState(null)
   const [selectedPatient, setSelectedPatient] = useState(null)
@@ -144,14 +152,68 @@ function PatientsPage() {
     loadPatients()
   }, [])
 
-  const filteredPatients = patients.filter((patient) => {
+  const filteredPatients = useMemo(() => {
     const term = search.toLowerCase().trim()
-    return (
-      patient.name.toLowerCase().includes(term) ||
-      patient.cpf.includes(term) ||
-      (patient.phone || '').includes(term)
-    )
+
+    return patients.filter((patient) => {
+      const matchesSearch =
+        !term ||
+        patient.name.toLowerCase().includes(term) ||
+        patient.cpf.includes(term) ||
+        (patient.phone || '').includes(term)
+
+      if (!matchesSearch) {
+        return false
+      }
+
+      if (!consultDateFrom && !consultDateTo) {
+        return true
+      }
+
+      if (!patient.lastConsultAt) {
+        return false
+      }
+
+      const consultDate = String(patient.lastConsultAt).slice(0, 10)
+
+      if (consultDateFrom && consultDate < consultDateFrom) {
+        return false
+      }
+
+      if (consultDateTo && consultDate > consultDateTo) {
+        return false
+      }
+
+      return true
+    })
+  }, [patients, search, consultDateFrom, consultDateTo])
+
+  const visiblePatients = useMemo(
+    () => filteredPatients.slice(0, visibleCount),
+    [filteredPatients, visibleCount],
+  )
+
+  const hasMorePatients = visibleCount < filteredPatients.length
+  const hasActiveFilters = Boolean(search.trim() || consultDateFrom || consultDateTo)
+
+  const loadMorePatients = useCallback(() => {
+    setVisibleCount((current) => Math.min(current + PAGE_SIZE, filteredPatients.length))
+  }, [filteredPatients.length])
+
+  const sentinelRef = useInfiniteScroll({
+    hasMore: hasMorePatients,
+    onLoadMore: loadMorePatients,
   })
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE)
+  }, [search, consultDateFrom, consultDateTo])
+
+  function clearFilters() {
+    setSearch('')
+    setConsultDateFrom('')
+    setConsultDateTo('')
+  }
 
   async function handleFormSaved(savedPatient) {
     const wasEditing = editingPatient
@@ -296,6 +358,12 @@ function PatientsPage() {
           <h2 className={pageTitle}>Pacientes</h2>
           <p className={pageSubtitle}>
             {patients.length} cadastrado{patients.length === 1 ? '' : 's'}
+            {filteredPatients.length !== patients.length
+              ? ` · ${filteredPatients.length} no filtro`
+              : ''}
+            {visiblePatients.length < filteredPatients.length
+              ? ` · mostrando ${visiblePatients.length}`
+              : ''}
           </p>
         </div>
         <div className="flex gap-2">
@@ -386,13 +454,48 @@ function PatientsPage() {
         </div>
       ) : (
         <>
-          <input
-            type="search"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Buscar por nome, CPF ou telefone"
-            className={`${searchInput} mb-4 max-w-[min(28rem,100%)]`}
-          />
+          <div className="mb-4 space-y-3">
+            <input
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Buscar por nome, CPF ou telefone"
+              className={`${searchInput} max-w-[min(28rem,100%)]`}
+            />
+
+            <div className="flex flex-wrap items-end gap-3">
+              <div>
+                <label htmlFor="consultDateFrom" className={labelClass}>
+                  Consulta de
+                </label>
+                <input
+                  id="consultDateFrom"
+                  type="date"
+                  value={consultDateFrom}
+                  onChange={(event) => setConsultDateFrom(event.target.value)}
+                  className={`${inputClassSm} w-[min(100%,11rem)]`}
+                />
+              </div>
+              <div>
+                <label htmlFor="consultDateTo" className={labelClass}>
+                  Consulta até
+                </label>
+                <input
+                  id="consultDateTo"
+                  type="date"
+                  value={consultDateTo}
+                  min={consultDateFrom || undefined}
+                  onChange={(event) => setConsultDateTo(event.target.value)}
+                  className={`${inputClassSm} w-[min(100%,11rem)]`}
+                />
+              </div>
+              {hasActiveFilters ? (
+                <button type="button" onClick={clearFilters} className={`${btnSecondary} mb-0.5`}>
+                  Limpar filtros
+                </button>
+              ) : null}
+            </div>
+          </div>
 
           {filteredPatients.length === 0 ? (
             <p className={`${pageSubtitle} py-8`}>
@@ -401,9 +504,9 @@ function PatientsPage() {
                 : 'Nenhum paciente encontrado.'}
             </p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto rounded-lg ring-1 ring-slate-200 dark:ring-slate-700">
               <table className="w-full table-fixed text-left text-[clamp(0.75rem,0.95vw,0.9rem)]">
-                <thead className={tableHead}>
+                <thead className={`${tableHead} sticky top-0 z-10`}>
                   <tr>
                     <th className="w-[22%] px-3 py-2.5">Nome</th>
                     <th className="w-[16%] px-3 py-2.5">CPF</th>
@@ -414,7 +517,7 @@ function PatientsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredPatients.map((patient) => (
+                  {visiblePatients.map((patient) => (
                     <tr key={patient.id} onClick={() => openPatient(patient)} className={tableRowInteractive}>
                       <td className={tableCellStrong}>{patient.name}</td>
                       <td className={tableCell}>{patient.cpf}</td>
@@ -434,6 +537,18 @@ function PatientsPage() {
                   ))}
                 </tbody>
               </table>
+              {hasMorePatients ? (
+                <div
+                  ref={sentinelRef}
+                  className="border-t border-slate-200 px-3 py-4 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400"
+                >
+                  Carregando mais pacientes...
+                </div>
+              ) : filteredPatients.length > PAGE_SIZE ? (
+                <p className="border-t border-slate-200 px-3 py-3 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                  Todos os {filteredPatients.length} pacientes foram carregados.
+                </p>
+              ) : null}
             </div>
           )}
         </>

@@ -21,6 +21,7 @@ function PatientForm({ patient, onSaved, onCancel }) {
   const [name, setName] = useState('')
   const [birthDate, setBirthDate] = useState('')
   const [cpf, setCpf] = useState('')
+  const [rg, setRg] = useState('')
   const [phone, setPhone] = useState('')
   const [notes, setNotes] = useState('')
   const [anamnesis, setAnamnesis] = useState(emptyAnamnesis)
@@ -43,6 +44,7 @@ function PatientForm({ patient, onSaved, onCancel }) {
     setName(patient.name ?? '')
     setBirthDate(patient.birthDate ?? '')
     setCpf(patient.cpf ?? '')
+    setRg(patient.rg ?? '')
     setPhone(patient.phone ?? '')
     setNotes(patient.notes ?? '')
     setAnamnesis(mergeAnamnesis(patient.anamnesis))
@@ -68,6 +70,7 @@ function PatientForm({ patient, onSaved, onCancel }) {
     setName('')
     setBirthDate('')
     setCpf('')
+    setRg('')
     setPhone('')
     setNotes('')
     setAnamnesis(emptyAnamnesis())
@@ -84,6 +87,7 @@ function PatientForm({ patient, onSaved, onCancel }) {
       name: name.trim(),
       birthDate,
       cpf,
+      rg: rg.trim(),
       phone: phone.trim(),
       notes: notes.trim(),
       anamnesis,
@@ -191,6 +195,20 @@ function PatientForm({ patient, onSaved, onCancel }) {
         </div>
 
         <div>
+          <label htmlFor="rg" className={labelClass}>
+            RG
+          </label>
+          <input
+            id="rg"
+            type="text"
+            value={rg}
+            onChange={(event) => setRg(event.target.value)}
+            placeholder="00.000.000-0"
+            className={inputClassSm}
+          />
+        </div>
+
+        <div className="col-span-2">
           <label htmlFor="storeId" className={labelClass}>
             Localidade
           </label>

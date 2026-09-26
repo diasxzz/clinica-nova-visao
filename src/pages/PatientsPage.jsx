@@ -160,6 +160,7 @@ function PatientsPage() {
         !term ||
         patient.name.toLowerCase().includes(term) ||
         patient.cpf.includes(term) ||
+        (patient.rg || '').toLowerCase().includes(term) ||
         (patient.phone || '').includes(term)
 
       if (!matchesSearch) {
@@ -401,6 +402,9 @@ function PatientsPage() {
           <aside className={asidePanel}>
             <h3 className={`${pageTitle} text-lg`}>{selectedPatient.name}</h3>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">CPF {selectedPatient.cpf}</p>
+            {selectedPatient.rg ? (
+              <p className="text-sm text-slate-600 dark:text-slate-400">RG {selectedPatient.rg}</p>
+            ) : null}
             <p className="text-sm text-slate-600 dark:text-slate-400">{getStoreName(selectedPatient.storeId)}</p>
             <p className="text-sm text-slate-600 dark:text-slate-400">
               Nasc. {formatBirthDate(selectedPatient.birthDate)}
@@ -459,7 +463,7 @@ function PatientsPage() {
               type="search"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar por nome, CPF ou telefone"
+              placeholder="Buscar por nome, CPF, RG ou telefone"
               className={`${searchInput} max-w-[min(28rem,100%)]`}
             />
 

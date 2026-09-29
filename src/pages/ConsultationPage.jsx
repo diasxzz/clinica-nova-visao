@@ -1,5 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import AnamnesisSummary from '../components/AnamnesisSummary.jsx'
+import {
+  AtendimentoError,
+  concluirExame,
+  getFilaDoDia,
+  getOpenAtendimentoForPatient,
+  vincularReceita,
+} from '../atendimentoStorage.js'
+import { ATENDIMENTO_STATUS } from '../domain/atendimento/status.js'
 import { getPatients, savePrescription } from '../storage.js'
 import { getStoreName } from '../stores.js'
 import { useAuth } from '../AuthContext.jsx'
@@ -108,8 +116,10 @@ function OptionChips({ title, options, selected, onToggle }) {
 }
 
 function ConsultationPage() {
-  const { isDoctor } = useAuth()
+  const { isDoctor, profile } = useAuth()
   const [patients, setPatients] = useState([])
+  const [filaEmAtendimento, setFilaEmAtendimento] = useState([])
+  const [activeAtendimento, setActiveAtendimento] = useState(null)
   const [search, setSearch] = useState('')
   const [selectedPatient, setSelectedPatient] = useState(null)
   const [rightEye, setRightEye] = useState(emptyEye)
@@ -123,6 +133,18 @@ function ConsultationPage() {
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+  const [isConcluding, setIsConcluding] = useState(false)
+
+  const loadFila = useCallback(async () => {
+    try {
+      const list = await getFilaDoDia({ storeId: profile?.storeId ?? null })
+      setFilaEmAtendimento(
+        list.filter((item) => item.status === ATENDIMENTO_STATUS.EM_ATENDIMENTO),
+      )
+    } catch (error) {
+      console.error(error)
+    }
+  }, [profile?.storeId])
 
   useEffect(() => {
     async function loadPatients() {
@@ -136,7 +158,8 @@ function ConsultationPage() {
     }
 
     loadPatients()
-  }, [])
+    loadFila()
+  }, [loadFila])
 
   const filteredPatients = patients.filter((patient) => {
     const term = search.toLowerCase().trim()
@@ -155,12 +178,60 @@ function ConsultationPage() {
     }))
   }
 
-  function handleSelectPatient(patient) {
+  async function handleSelectPatient(patient, atendimento = null) {
     setSelectedPatient(patient)
     setPhone(patient.phone || '')
     setSearch('')
     setErrorMessage('')
     setSuccessMessage('')
+
+    if (atendimento) {
+      setActiveAtendimento(atendimento)
+      return
+    }
+
+    try {
+      const open = await getOpenAtendimentoForPatient(patient.id)
+      setActiveAtendimento(open)
+    } catch (error) {
+      setActiveAtendimento(null)
+      console.error(error)
+    }
+  }
+
+  function handleClearPatient() {
+    setSelectedPatient(null)
+    setActiveAtendimento(null)
+  }
+
+  async function handleConcluirSemReceita() {
+    if (!activeAtendimento) {
+      setErrorMessage('Não há atendimento em aberto para este paciente hoje.')
+      return
+    }
+
+    setIsConcluding(true)
+    setErrorMessage('')
+    setSuccessMessage('')
+
+    try {
+      await concluirExame(activeAtendimento.id)
+      setSuccessMessage(
+        `Exame de ${selectedPatient.name} concluído sem receita. A recepção verá "Sem receita".`,
+      )
+      setActiveAtendimento(null)
+      handleClearPatient()
+      await loadFila()
+    } catch (error) {
+      if (error instanceof AtendimentoError) {
+        setErrorMessage(error.message)
+      } else {
+        setErrorMessage('Não foi possível concluir o exame.')
+        console.error(error)
+      }
+    } finally {
+      setIsConcluding(false)
+    }
   }
 
   async function handleSubmit(event) {
@@ -175,7 +246,7 @@ function ConsultationPage() {
     setIsSaving(true)
 
     try {
-      await savePrescription({
+      const saved = await savePrescription({
         patientId: selectedPatient.id,
         rightEye: { ...rightEye, addition: addition.trim() },
         leftEye: { ...leftEye, addition: '' },
@@ -186,10 +257,19 @@ function ConsultationPage() {
         treatments,
       })
 
+      if (activeAtendimento) {
+        await vincularReceita(activeAtendimento.id, saved.id)
+      }
+
       setErrorMessage('')
       setSuccessMessage(
-        `Receita de ${selectedPatient.name} salva. A recepção envia os dados para a ótica.`,
+        activeAtendimento
+          ? `Receita de ${selectedPatient.name} salva e atendimento finalizado.`
+          : `Receita de ${selectedPatient.name} salva. A recepção envia os dados para a ótica.`,
       )
+      setActiveAtendimento(null)
+      handleClearPatient()
+      await loadFila()
     } catch (error) {
       setErrorMessage('Não foi possível salvar a receita. Tente de novo.')
       console.error(error)
@@ -207,6 +287,30 @@ function ConsultationPage() {
 
       {successMessage && <p className={`${alertSuccess} mb-4`}>{successMessage}</p>}
       {errorMessage && <p className={`${alertError} mb-4`}>{errorMessage}</p>}
+
+      {filaEmAtendimento.length > 0 && !selectedPatient ? (
+        <div className="mb-6 rounded-xl border border-sky-200 bg-sky-50 p-3 dark:border-sky-800 dark:bg-sky-950/30">
+          <p className="mb-2 text-sm font-semibold text-sky-900 dark:text-sky-200">
+            Em atendimento agora
+          </p>
+          <ul className="space-y-2">
+            {filaEmAtendimento.map((atendimento) => (
+              <li key={atendimento.id}>
+                <button
+                  type="button"
+                  onClick={() => handleSelectPatient(atendimento.patient, atendimento)}
+                  className="flex min-h-12 w-full items-center justify-between rounded-lg bg-white px-3 py-2 text-left ring-1 ring-sky-200 dark:bg-slate-900 dark:ring-sky-900"
+                >
+                  <span className="font-medium text-slate-800 dark:text-slate-100">
+                    {atendimento.patient?.name}
+                  </span>
+                  <span className="text-sm text-sky-700 dark:text-sky-300">Atender</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       <div className="mb-6">
         <label htmlFor="patient-search" className={labelClass}>
@@ -233,9 +337,19 @@ function ConsultationPage() {
                 </div>
               ) : null}
             </div>
+            {activeAtendimento?.status === ATENDIMENTO_STATUS.EM_ATENDIMENTO ? (
+              <button
+                type="button"
+                disabled={isConcluding || isSaving}
+                onClick={handleConcluirSemReceita}
+                className="min-h-12 rounded-xl bg-orange-50 px-3 py-3 text-sm font-medium text-orange-800 ring-1 ring-orange-200 dark:bg-orange-950/40 dark:text-orange-200 dark:ring-orange-900"
+              >
+                {isConcluding ? 'Concluindo...' : 'Concluir exame sem receita'}
+              </button>
+            ) : null}
             <button
               type="button"
-              onClick={() => setSelectedPatient(null)}
+              onClick={handleClearPatient}
               className="min-h-12 rounded-xl bg-white px-3 py-3 text-sm font-medium text-slate-700 ring-1 ring-slate-200 dark:bg-slate-900 dark:text-slate-200 dark:ring-slate-700"
             >
               Trocar paciente

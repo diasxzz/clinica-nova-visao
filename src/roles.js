@@ -4,7 +4,7 @@ export function defaultPageForRole(role) {
   }
 
   if (role === 'reception') {
-    return 'patients'
+    return 'reception'
   }
 
   return 'consultation'
@@ -52,7 +52,7 @@ export function jobLabel(role) {
   }
 
   if (role === 'reception') {
-    return 'Recepção · cadastro, envio e impressão'
+    return 'Recepção · fila do dia, cadastro e envio'
   }
 
   return role

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 APP_DIR="${APP_DIR:-/var/www/clinica}"
-BRANCH="${BRANCH:-cursor/adicao-somente-esferico}"
+BRANCH="${BRANCH:-main}"
 
 sudo chown -R "$USER:$USER" "$APP_DIR"
 cd "$APP_DIR"

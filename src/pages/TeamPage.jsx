@@ -37,10 +37,21 @@ function TeamPage() {
   const [isToggling, setIsToggling] = useState(false)
 
   async function loadStaff() {
-    const { data, error } = await supabase
+    let query = supabase
       .from('staff')
       .select('user_id, username, role, store_id, must_change_password, is_active')
       .order('username')
+
+    let { data, error } = await query
+
+    if (error?.code === '42703') {
+      ;({ data, error } = await supabase
+        .from('staff')
+        .select('user_id, username, role, store_id, must_change_password')
+        .order('username'))
+
+      data = (data ?? []).map((person) => ({ ...person, is_active: true }))
+    }
 
     if (error) {
       setErrorMessage('Não foi possível carregar a equipe.')

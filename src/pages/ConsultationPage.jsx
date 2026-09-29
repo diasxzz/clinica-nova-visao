@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import AnamnesisSummary from '../components/AnamnesisSummary.jsx'
 import { getPatients, savePrescription } from '../storage.js'
 import { getStoreName } from '../stores.js'
 import { useAuth } from '../AuthContext.jsx'
@@ -220,10 +221,11 @@ function ConsultationPage() {
               <p className="text-sm font-medium text-teal-800 dark:text-teal-300">
                 Localidade: {getStoreName(selectedPatient.storeId)}
               </p>
+              <AnamnesisSummary anamnesis={selectedPatient.anamnesis} />
               {selectedPatient.notes ? (
                 <div className="mt-3 rounded-lg bg-white px-3 py-2 ring-1 ring-teal-200 dark:bg-slate-900 dark:ring-teal-900">
                   <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-teal-800 dark:text-teal-300">
-                    Observações da recepção
+                    Observações adicionais
                   </p>
                   <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
                     {selectedPatient.notes}
